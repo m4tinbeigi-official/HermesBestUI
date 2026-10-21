@@ -34,8 +34,11 @@ def scan_media_items() -> list[dict]:
         Path.home() / ".hermes" / "audio_cache",
         Path.home() / ".hermes" / "image_cache",
         Path.home() / ".hermes" / "cache" / "scratch",
+        Path.home() / "voice-memos",
         Path.home() / "workspace" / "media-assets",
         Path.home() / "workspace" / "data-and-reports",
+        Path.home() / "workspace" / "projects",
+        Path.home() / "workspace" / "clients-and-collaborations",
     ]
     media_extensions = {
         # images
@@ -55,6 +58,8 @@ def scan_media_items() -> list[dict]:
             continue
         try:
             for root, _, files in os.walk(d):
+                if any(ignored in root for ignored in ["node_modules", ".git", ".venv", "venv", "__pycache__"]):
+                    continue
                 for f in files:
                     if f.startswith("."):
                         continue
@@ -83,6 +88,22 @@ def scan_media_items() -> list[dict]:
     return items
 
 
+def _resolve_target_path(raw_path: str) -> Path:
+    p = Path(raw_path).expanduser()
+    if not p.is_absolute():
+        try:
+            from api.workspace import get_last_workspace
+            ws = Path(get_last_workspace()).resolve()
+            if (ws / p).exists():
+                return (ws / p).resolve()
+        except Exception:
+            pass
+        fallback = (Path.home() / "workspace" / raw_path).resolve()
+        if fallback.exists():
+            return fallback
+    return p.resolve()
+
+
 def serve_file(handler, parsed, as_attachment: bool = False) -> bool:
     query = urllib.parse.parse_qs(parsed.query)
     raw_path = query.get("path", [""])[0]
@@ -90,7 +111,7 @@ def serve_file(handler, parsed, as_attachment: bool = False) -> bool:
         j(handler, {"error": "Missing path parameter"}, status=400)
         return True
 
-    p = Path(raw_path).expanduser().resolve()
+    p = _resolve_target_path(raw_path)
     if not p.exists() or not p.is_file():
         j(handler, {"error": "File not found"}, status=404)
         return True
@@ -145,7 +166,7 @@ def handle_gallery_delete(handler, parsed) -> bool:
         if not raw_path:
             j(handler, {"error": "Missing path parameter"}, status=400)
             return True
-        p = Path(raw_path).expanduser().resolve()
+        p = _resolve_target_path(raw_path)
         if not p.exists():
             j(handler, {"error": "File not found"}, status=404)
             return True

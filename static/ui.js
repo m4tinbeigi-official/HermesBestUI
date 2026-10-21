@@ -9427,7 +9427,7 @@ window.copyCodeBlock = function(btn) {
 
 function _renderCodeSpan(c){
   const clean = String(c || '').trim();
-  const isFilePath = /^(?:\/Users\/|\/root\/|~\/|\.\/|workspace\/|\.hermes\/)[\w.-]+(?:\/[\w.-]+)*\.[a-zA-Z0-9]{2,8}$/.test(clean);
+  const isFilePath = /^(?:\/Users\/|\/root\/|~\/|\.\/|workspace\/|\.hermes\/)[\w.-]+(?:\/[\w.-]+)*\.[a-zA-Z0-9]{2,8}$/.test(clean) || /^[\w.-]+\.(?:py|js|ts|json|csv|md|txt|html|css|yaml|yml|sh|bash|png|jpg|jpeg|webp|svg|mp3|wav|ogg|mp4|m4a|pdf)$/i.test(clean);
   if (isFilePath) {
     const enc = encodeURIComponent(clean);
     return `<span class="file-ref-badge"><code>${esc(clean)}</code><a href="/api/files/preview?path=${enc}" target="_blank" class="file-ref-btn preview-btn" title="مشاهده فایل"><svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg></a><a href="/api/files/download?path=${enc}" download class="file-ref-btn download-btn" title="دانلود فایل"><svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg></a></span>`;
@@ -9592,7 +9592,11 @@ function renderMd(raw){
     }
     return lead+'\x00P'+(_preBlock_stash.length-1)+'\x00';
   });
-  s=s.replace(/`([^`\n]+)`/g,(_,c)=>{fence_stash.push(_renderCodeSpan(c));return '\x00F'+(fence_stash.length-1)+'\x00';});
+  s=s.replace(/`([^`\n]+)`/g,(_,c)=>{
+    const rendered = _renderCodeSpan(c);
+    _preBlock_stash.push(rendered);
+    return '\x00P'+(_preBlock_stash.length-1)+'\x00';
+  });
   // Math stash: protect $$..$$ and $..$ from markdown processing
   // Runs AFTER fence_stash so backtick code spans protect their dollar-sign contents
   const math_stash=[];
@@ -10099,8 +10103,8 @@ function renderMd(raw){
     if(/^(javascript|vbscript):/i.test(compact)) return false;
     if(/^https?:\/\//i.test(raw)) return true;
     if(/^(mailto:|tel:|message:)/i.test(raw)) return true;
-    if(img && /^api\//i.test(raw)) return true;
-    if(!img && (/^api\//i.test(raw) || /^#/.test(raw) || _isInternalSessionHref(raw))) return true;
+    if(img && (/^api\//i.test(raw) || /^\/api\//i.test(raw))) return true;
+    if(!img && (/^api\//i.test(raw) || /^\/api\//i.test(raw) || /^#/.test(raw) || _isInternalSessionHref(raw))) return true;
     return false;
   }
   function _attrs(raw){
@@ -10135,7 +10139,7 @@ function renderMd(raw){
       return `<li${value}>`;
     }
     if(name==='span'){
-      return `<span${_cls(a.class,['task-done','task-todo','katex-inline'])}${a['data-katex']==='inline'?' data-katex="inline"':''}>`;
+      return `<span${_cls(a.class,['task-done','task-todo','katex-inline','file-ref-badge'])}${a['data-katex']==='inline'?' data-katex="inline"':''}>`;
     }
     if(name==='div'){
       const cls=_cls(a.class,['pre-header','mermaid-block','katex-block']);
@@ -10147,8 +10151,8 @@ function renderMd(raw){
       if(!_isSafeUrl(a.href,false)) return '<a>';
       const target=a.target==='_blank'?' target="_blank"':'';
       const rel=a.rel==='noopener'?' rel="noopener"':'';
-      const cls=_cls(a.class,['msg-media-link','skill-linked-file','skill-file-back','session-link']);
-      const download=a.download?` download="${esc(a.download)}"`:'';
+      const cls=_cls(a.class,['msg-media-link','skill-linked-file','skill-file-back','session-link','file-ref-btn','preview-btn','download-btn']);
+      const download=a.download!==undefined?` download="${esc(a.download||'')}"`:'';
       // #7941: keep the blocked-remote-image tooltip only on a media chip whose
       // href really is a non-allowlisted remote image AND whose title begins with
       // the reason computed from that same href, so model-authored anchors cannot
