@@ -272,20 +272,28 @@ def handle_file_content(handler, parsed) -> bool:
 def scan_media_items() -> list[dict]:
     """Scan Hermes and workspace directories for audio, image, and generated media files."""
     scan_dirs = [
+        Path.home() / "workspace",
+        Path("/root/workspace"),
         Path.home() / ".hermes" / "audio_cache",
         Path.home() / ".hermes" / "image_cache",
         Path.home() / ".hermes" / "cache" / "scratch",
+        Path.home() / ".hermes" / "knowledge",
         Path.home() / "voice-memos",
-        Path.home() / "workspace" / "media-assets",
-        Path.home() / "workspace" / "data-and-reports",
-        Path.home() / "workspace" / "projects",
-        Path.home() / "workspace" / "clients-and-collaborations",
+        Path.home() / "Downloads",
+        Path.home() / "Desktop",
     ]
     media_extensions = {
-        ".png": "image", ".jpg": "image", ".jpeg": "image", ".gif": "image", ".webp": "image", ".svg": "image",
-        ".mp3": "audio", ".wav": "audio", ".ogg": "audio", ".m4a": "audio", ".aac": "audio",
-        ".mp4": "video", ".webm": "video", ".mov": "video",
+        # images
+        ".png": "image", ".jpg": "image", ".jpeg": "image", ".gif": "image", ".webp": "image", ".svg": "image", ".ico": "image",
+        # audio
+        ".mp3": "audio", ".wav": "audio", ".ogg": "audio", ".m4a": "audio", ".aac": "audio", ".flac": "audio",
+        # video
+        ".mp4": "video", ".webm": "video", ".mov": "video", ".mkv": "video",
+        # docs / text / code
         ".pdf": "document", ".csv": "document", ".json": "document", ".txt": "document",
+        ".md": "document", ".py": "document", ".sh": "document", ".yaml": "document",
+        ".yml": "document", ".html": "document", ".sql": "document", ".log": "document",
+        ".service": "document", ".conf": "document",
     }
     items = []
     seen = set()
@@ -294,23 +302,23 @@ def scan_media_items() -> list[dict]:
         if not d.exists() or not d.is_dir():
             continue
         try:
-            for root, _, files in os.walk(d):
-                if any(ignored in root for ignored in ["node_modules", ".git", ".venv", "venv", "__pycache__"]):
-                    continue
+            for root, dirs, files in os.walk(d):
+                dirs[:] = [sub for sub in dirs if sub not in ["node_modules", ".git", ".venv", "venv", "__pycache__", ".npm"]]
                 for f in files:
-                    if f.startswith("."):
+                    if f.startswith(".") and f not in [".env"]:
                         continue
                     ext = Path(f).suffix.lower()
                     if ext in media_extensions:
                         full_path = Path(root) / f
-                        if full_path in seen:
+                        str_p = str(full_path.resolve())
+                        if str_p in seen:
                             continue
-                        seen.add(full_path)
+                        seen.add(str_p)
                         try:
                             stat = full_path.stat()
                             items.append({
                                 "name": f,
-                                "path": str(full_path),
+                                "path": str_p,
                                 "size": stat.st_size,
                                 "mtime": stat.st_mtime,
                                 "type": media_extensions[ext],

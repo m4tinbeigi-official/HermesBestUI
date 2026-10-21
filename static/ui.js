@@ -14300,12 +14300,13 @@ function _fmtDateSep(d){
   const todayStart=new Date();todayStart.setHours(0,0,0,0);
   const dStart=new Date(d);dStart.setHours(0,0,0,0);
   const diffDays=Math.round((todayStart-dStart)/86400000);
-  if(diffDays===0) return 'Today';
-  if(diffDays===1) return 'Yesterday';
-  if(diffDays>0 && diffDays<7) return dStart.toLocaleDateString([], {weekday:'long'});
+  if(diffDays===0) return typeof t === 'function' ? t('session_time_bucket_today') : 'امروز';
+  if(diffDays===1) return typeof t === 'function' ? t('session_time_bucket_yesterday') : 'دیروز';
+  const isFa = typeof getLocale === 'function' ? getLocale() === 'fa' : true;
+  if(diffDays>0 && diffDays<7) return dStart.toLocaleDateString(isFa ? 'fa-IR' : [], {weekday:'long'});
   const opts={month:'short', day:'numeric'};
   if(todayStart.getFullYear()!==dStart.getFullYear()) opts.year='numeric';
-  return dStart.toLocaleDateString([], opts);
+  return dStart.toLocaleDateString(isFa ? 'fa-IR' : [], opts);
 }
 const _ERR_MSG_RE=/^(?:\*\*error\b|error:|connection lost|no response received)/i;
 function _messageHasReasoningPayload(m){

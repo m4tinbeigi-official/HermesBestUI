@@ -8506,7 +8506,8 @@ function _formatSessionDate(timestampMs, nowMs) {
   const now = new Date(nowMs);
   const options = {month:'short', day:'numeric'};
   if (date.getFullYear() !== now.getFullYear()) options.year = 'numeric';
-  return date.toLocaleDateString(undefined, options);
+  const isFa = typeof getLocale === 'function' ? getLocale() === 'fa' : false;
+  return date.toLocaleDateString(isFa ? 'fa-IR' : undefined, options);
 }
 
 function _formatRelativeSessionTime(timestampMs, nowMs) {
@@ -10050,7 +10051,7 @@ function renderSessionListFromCache(){
   };
   // Group sessions by Project / Folder
   const groups=[];
-  if(pinned.length) groups.push({label:'\u2605 Pinned',items:pinned,isPinned:true});
+  if(pinned.length) groups.push({label:'\u2605 ' + (typeof t === 'function' ? (t('session_time_bucket_pinned') || 'Pinned') : 'Pinned'),items:pinned,isPinned:true});
   if(Array.isArray(_allProjects) && _allProjects.length > 0){
     const projectsMap = new Map();
     _allProjects.forEach(p => {
