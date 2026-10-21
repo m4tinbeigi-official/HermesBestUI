@@ -1,5 +1,5 @@
 /**
- * HermesBestUI - Interactive Chat Project Hub & Messages Accordion
+ * Mr Hermes - Interactive Chat Project Hub & Messages Accordion
  * Manages projects directly inside the chat section with collapsible project chats and messages.
  */
 

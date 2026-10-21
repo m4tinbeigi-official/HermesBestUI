@@ -4039,7 +4039,7 @@ window._mirrorSpeechSettingsFromServer=_mirrorSpeechSettingsFromServer;
     _applyComposerControlOrder(window._composerControlOrder);
     window._showTitlebarProfile=!!s.show_titlebar_profile;
     _applyTitlebarProfileVisibility();
-    window._botName=(s.bot_name&&s.bot_name!=='Hermes')?s.bot_name:'Mr Hermes';
+    window._botName='Mr Hermes';
     if(s.default_model_provider) window._activeProvider=s.default_model_provider;
     if(s.default_model){
       window._defaultModel=s.default_model;

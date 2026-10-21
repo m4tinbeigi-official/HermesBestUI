@@ -1,8 +1,8 @@
-"""Hermes Unified Services Orchestrator & Recovery Engine for HermesBestUI.
+"""Hermes Unified Services Orchestrator & Recovery Engine for Mr Hermes.
 
 Manages, probes, restarts, and guarantees autostart across the complete
 Hermes AI ecosystem:
-- HermesBestUI (WebUI port 8787)
+- Mr Hermes (WebUI port 8787)
 - 9Router AI Gateway (port 20128)
 - Mr Hermes Master Web Panel (port 7425)
 - Hermes Messaging Gateway (Telegram / Discord / Slack)
@@ -115,12 +115,12 @@ def get_services_status(request_host: str | None = None) -> dict:
     system_os = platform.system()
     panel_url = get_web_panel_url(request_host)
 
-    # 1. HermesBestUI (self)
+    # 1. Mr Hermes (self)
     webui_port = int(os.environ.get("HERMES_WEBUI_PORT", 8787))
     webui_ok, webui_lat = _check_tcp_port(webui_port)
     webui_status = {
         "id": "webui",
-        "name": "HermesBestUI",
+        "name": "Mr Hermes",
         "port": webui_port,
         "online": True,  # self is always running to answer this
         "latency_ms": webui_lat or 0.5,
@@ -427,11 +427,11 @@ def restart_all_hermes_services(
             except Exception as e:
                 logger.debug("Proxy restart: %s", e)
 
-        # 5. HermesBestUI (self) graceful bounce
+        # 5. Mr Hermes (self) graceful bounce
         webui_restarting = False
         if include_webui:
             webui_restarting = True
-            restarted.append("HermesBestUI")
+            restarted.append("Mr Hermes")
 
             def _delayed_webui_bounce():
                 time.sleep(0.7)  # allow HTTP response to flush cleanly to client

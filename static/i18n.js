@@ -1454,11 +1454,11 @@ const LOCALES = {
     save_skill: 'Save skill',
     editing: 'Editing',
     // Empty state
-    empty_title: 'What can I help with?',
-    empty_subtitle: 'Ask anything, run commands, explore files, or manage your scheduled tasks.',
-    suggest_files: 'What files are in this workspace?',
-    suggest_schedule: "What's on my schedule today?",
-    suggest_plan: 'Help me plan a small project.',
+    empty_title: 'چطور می‌توانم کمکتان کنم؟',
+    empty_subtitle: 'مستر هرمس: دستیار شما به معنای واقعی کلمه — هر سوالی بپرسید، دستورات را اجرا کنید یا پروژه‌های خود را مدیریت نمایید.',
+    suggest_files: 'چه فایل‌هایی در این فضای کاری وجود دارد؟',
+    suggest_schedule: 'برنامه‌ها و وظایف زمان‌بندی‌شده امروز چیست؟',
+    suggest_plan: 'برای شروع و معماری یک پروژه جدید کمکم کن',
     // onboarding
     onboarding_badge: 'FIRST RUN',
     onboarding_title: 'Welcome to Hermes Web UI',
@@ -29033,5 +29033,5 @@ window.getLocale = getLocale;
 window.applyLocaleToDOM = applyLocaleToDOM;
 window.t = t;
 window.LOCALES = LOCALES;
-window.HERMES_BRAND = 'HermesBestUI';
+window.HERMES_BRAND = 'Mr Hermes';
 window.HERMES_REPO = 'm4tinbeigi-official/HermesBestUI';

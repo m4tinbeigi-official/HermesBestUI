@@ -1,4 +1,4 @@
-"""Media gallery and universal file preview/download API for HermesBestUI."""
+"""Media gallery and universal file preview/download API for Mr Hermes."""
 
 import io
 import mimetypes

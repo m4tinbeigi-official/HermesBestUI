@@ -7359,7 +7359,7 @@ function attachLiveStream(activeSid, streamId, uploaded=[], options={}){
                 ? _isMessageReaderUnpinned()
                 : (typeof _messageUserUnpinned!=='undefined' && _messageUserUnpinned));
             clearLiveToolCards();if(!assistantText)removeThinking();
-            const cancelAgentName=(assistantDisplayName()+'').trim()||'Hermes';
+    const cancelAgentName='Mr Hermes';
             S.messages.push({role:'assistant',content:`**Task cancelled:** Task cancelled.\n\n*The run was cancelled by the user before ${cancelAgentName} finished. No provider failure occurred.*`,provider_details:'Task cancelled.',provider_details_label:'Cancellation details',_error:true});
             _attachProjectedAnchorSceneToLastAssistant(S.messages);
             renderMessages({preserveScroll:true});
@@ -9968,7 +9968,7 @@ function _notificationOptions(body,options={}){
   return {body:body||'',tag:sessionless?'hermes-webui-sessionless':(sid?`hermes-${sid}`:'hermes-webui'),renotify:true,icon:'static/favicon-192.png',badge:'static/favicon-32.png',data:{url}};
 }
 function _showPwaNotification(title,body,options={}){
-  const botName=assistantDisplayName();
+  const botName='Mr Hermes';
   const opts=_notificationOptions(body,options);
   const direct=()=>new Notification(title||botName,opts);
   // Prefer the service worker (the only path that works in a standalone PWA,

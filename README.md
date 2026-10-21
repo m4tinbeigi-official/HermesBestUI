@@ -5,9 +5,9 @@
   <a href="https://devsponsors.github.io/mediakit.html"><img src="https://img.shields.io/badge/Infrastructure-DevSponsors_Cloud-ec4899?style=for-the-badge&logo=server" alt="DevSponsors Cloud"></a>
 </p>
 
-# HermesBestUI
+# Mr Hermes
 
-[HermesBestUI](https://github.com/m4tinbeigi-official/HermesBestUI) — رابط کاربری پیشرفته، بومی‌سازی‌شده، کاملاً فارسی و راست‌چین برای عامل هوشمند هرمس.
+[Mr Hermes](https://github.com/m4tinbeigi-official/HermesBestUI) — رابط کاربری پیشرفته، بومی‌سازی‌شده، کاملاً فارسی و راست‌چین برای عامل هوشمند مستر هرمس.
 
 - **مخزن رسمی پروژه و به‌روزرسانی:** [m4tinbeigi-official/HermesBestUI](https://github.com/m4tinbeigi-official/HermesBestUI)
 - **پشتیبانی کامل RTL و فونت وزیرمتن**

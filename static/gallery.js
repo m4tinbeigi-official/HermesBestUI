@@ -1,5 +1,5 @@
 /**
- * HermesBestUI - Media Gallery & File Manager
+ * Mr Hermes - Media Gallery & File Manager
  */
 
 let _galleryItems = [];
