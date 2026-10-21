@@ -12905,7 +12905,7 @@ function _applySavedSettingsUi(saved, body, opts){
   if(Object.prototype.hasOwnProperty.call(body,'structured_code_default_view')){
     _applyStructuredCodeViewSettings(body.structured_code_default_view,body.structured_code_auto_tree_lines,false);
   }
-  window._botName=body.bot_name||'Hermes';
+  window._botName=(body.bot_name&&body.bot_name!=='Hermes')?body.bot_name:'Mr Hermes';
   if(typeof applyBotName==='function') applyBotName();
   else if(typeof _applyBusyComposerPlaceholder==='function') _applyBusyComposerPlaceholder();
   if(typeof setLocale==='function') setLocale(language);

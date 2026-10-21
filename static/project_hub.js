@@ -264,7 +264,7 @@ function _renderMessagesListInto(targetEl, messages, sid) {
     text = text.replace(/^\[Workspace::v\d+:[^\]]+\]\s*/i, '').trim();
     if (!text && !m.tool_calls) return '';
 
-    const roleName = isUser ? 'شما' : 'هرمس';
+    const roleName = isUser ? 'شما' : 'Mr Hermes';
     const mdRendered = (typeof renderMd === 'function' && !isUser) ? renderMd(text) : _esc(text);
 
     return `
