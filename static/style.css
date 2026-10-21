@@ -3037,6 +3037,9 @@
   .workspace-panel-edge-toggle:disabled{opacity:.3;cursor:not-allowed;transform:translateY(-50%);}
   .sidebar-edge-toggle{position:fixed;left:10px;top:50%;transform:translateY(-50%) translateX(-12px);z-index:120;width:34px;height:44px;border:1px solid var(--border2);border-radius:999px;background:var(--surface);color:var(--muted);box-shadow:0 10px 28px rgba(0,0,0,.22);display:none;align-items:center;justify-content:center;cursor:pointer;opacity:0;pointer-events:none;transition:opacity .18s ease,transform .18s ease,color .15s ease,background .15s ease,border-color .15s ease;}
   .sidebar-edge-toggle:hover{color:var(--text);background:var(--hover-bg);border-color:var(--accent);}
+  html[dir="rtl"] .sidebar-edge-toggle{left:auto;right:10px;transform:translateY(-50%) translateX(12px);}
+  html[dir="rtl"] .sidebar-collapse-btn svg{transform:scaleX(-1);}
+  html[dir="rtl"] .sidebar-edge-toggle svg{transform:scaleX(-1);}
   /* Small accent dot on the kebab button when a non-default pref is on */
   #btnWorkspacePrefs{position:relative;}
   #btnWorkspacePrefs .workspace-prefs-dot{position:absolute;top:3px;right:3px;width:6px;height:6px;border-radius:50%;background:var(--accent-text);box-shadow:0 0 0 1.5px var(--surface);pointer-events:none;}

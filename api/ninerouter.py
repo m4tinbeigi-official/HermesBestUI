@@ -82,6 +82,57 @@ def is_hermes_using_9router() -> bool:
         return False
 
 
+def get_hermes_active_model() -> str:
+    """Get active model configured in Hermes."""
+    try:
+        config_path = Path.home() / ".hermes" / "config.yaml"
+        if not config_path.exists():
+            return ""
+        import yaml
+        cfg = yaml.safe_load(config_path.read_text(encoding="utf-8")) or {}
+        return cfg.get("model", {}).get("default", "")
+    except Exception:
+        return ""
+
+
+def set_hermes_active_model(model_name: str) -> dict:
+    """Update active model in Hermes config.yaml."""
+    try:
+        config_path = Path.home() / ".hermes" / "config.yaml"
+        import yaml
+        cfg = {}
+        if config_path.exists():
+            cfg = yaml.safe_load(config_path.read_text(encoding="utf-8")) or {}
+
+        if "model" not in cfg or not isinstance(cfg["model"], dict):
+            cfg["model"] = {}
+
+        cfg["model"]["default"] = model_name
+        cfg["model"]["provider"] = "custom:9router"
+        cfg["model"]["base_url"] = "http://127.0.0.1:20128/v1"
+
+        config_path.write_text(yaml.safe_dump(cfg, sort_keys=False, allow_unicode=True), encoding="utf-8")
+        return {"success": True, "model": model_name}
+    except Exception as e:
+        return {"success": False, "error": str(e)}
+
+
+def kickstart_9router_service() -> dict:
+    """Kickstart 9router launchd daemon to clear in-memory quota blocks & 429 cache."""
+    try:
+        import subprocess
+        uid = os.getuid()
+        cmd = f"launchctl kickstart -k gui/{uid}/ai.hermes.9router"
+        res = subprocess.run(cmd, shell=True, capture_output=True, text=True, timeout=10)
+        if res.returncode == 0:
+            return {"success": True, "message": "9Router daemon kickstarted successfully."}
+        subprocess.run("pkill -f 'node.*9router' || true", shell=True, timeout=5)
+        return {"success": True, "message": "Process reloaded via signal."}
+    except Exception as e:
+        logger.exception("Failed to kickstart 9router: %s", e)
+        return {"success": False, "error": str(e)}
+
+
 def connect_hermes_to_9router(default_model: str = "ag/gemini-3.8-flash-medium") -> dict:
     """Configure Hermes config.yaml to use 9router."""
     try:
@@ -184,6 +235,7 @@ def handle_9router_get(handler, parsed) -> bool:
             "proxyPoolsCount": proxy_pools_count,
             "connectionsCount": connections_count,
             "hermesConnected": is_hermes_using_9router(),
+            "hermesActiveModel": get_hermes_active_model(),
         })
 
     if path == "/api/9router/providers":
@@ -196,7 +248,18 @@ def handle_9router_get(handler, parsed) -> bool:
 
     if path == "/api/9router/models":
         status, data = _ninerouter_request("GET", "/v1/models")
-        return j(handler, data, status=status)
+        j(handler, data, status=status)
+        return True
+
+    if path == "/api/9router/usage":
+        status, data = _ninerouter_request("GET", "/api/usage/stats")
+        j(handler, data, status=status)
+        return True
+
+    if path == "/api/9router/cli-tools":
+        status, data = _ninerouter_request("GET", "/api/cli-tools/all-statuses")
+        j(handler, data, status=status)
+        return True
 
     return False
 
@@ -248,6 +311,59 @@ def handle_9router_post(handler, parsed) -> bool:
             return j(handler, {"error": "Missing id"}, status=400)
         status, data = _ninerouter_request("POST", f"/api/proxy-pools/{pool_id}/test", body={})
         return j(handler, data, status=status)
+
+    if path == "/api/9router/kickstart":
+        res = kickstart_9router_service()
+        j(handler, res, status=200 if res.get("success") else 500)
+        return True
+
+    if path == "/api/9router/switch-model":
+        model = body.get("model", "")
+        if not model:
+            j(handler, {"error": "Missing model parameter"}, status=400)
+            return True
+        res = set_hermes_active_model(model)
+        j(handler, res, status=200 if res.get("success") else 500)
+        return True
+
+    if path == "/api/9router/cli-tools/toggle":
+        tool = body.get("tool", "")
+        action = body.get("action", "apply")
+        if tool == "claude":
+            if action == "apply":
+                status, data = _ninerouter_request("POST", "/api/cli-tools/claude-settings", body={
+                    "env": {
+                        "ANTHROPIC_BASE_URL": "http://localhost:20128/v1",
+                        "ANTHROPIC_DEFAULT_SONNET_MODEL": "ag/claude-sonnet-4-6",
+                        "ANTHROPIC_DEFAULT_OPUS_MODEL": "ag/claude-opus-4-6-thinking",
+                    }
+                })
+            else:
+                status, data = _ninerouter_request("DELETE", "/api/cli-tools/claude-settings")
+            j(handler, data, status=status)
+            return True
+
+        if tool == "opencode":
+            if action == "apply":
+                status, data = _ninerouter_request("POST", "/api/cli-tools/opencode-settings", body={})
+            else:
+                status, data = _ninerouter_request("DELETE", "/api/cli-tools/opencode-settings")
+            j(handler, data, status=status)
+            return True
+
+        if tool == "cline":
+            if action == "apply":
+                status, data = _ninerouter_request("POST", "/api/cli-tools/cline-settings", body={
+                    "openAiBaseUrl": "http://localhost:20128/v1",
+                    "actModeApiProvider": "openai",
+                })
+            else:
+                status, data = _ninerouter_request("DELETE", "/api/cli-tools/cline-settings")
+            j(handler, data, status=status)
+            return True
+
+        j(handler, {"error": "Unsupported tool"}, status=400)
+        return True
 
     return False
 
