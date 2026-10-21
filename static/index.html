@@ -234,6 +234,9 @@
       <div class="panel-head">
         <span data-i18n="tab_chat">Chat</span>
         <div class="panel-head-actions">
+          <button class="panel-head-btn has-tooltip has-tooltip--bottom-right" id="btnNewFolderSidebar" type="button" onclick="promptCreateNewFolderInSidebar(event)" data-tooltip="پوشه / پروژه جدید" title="پوشه / پروژه جدید" aria-label="پوشه / پروژه جدید">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="16" height="16"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/><line x1="12" y1="11" x2="12" y2="17"/><line x1="9" y1="14" x2="15" y2="14"/></svg>
+          </button>
           <button class="panel-head-btn has-tooltip has-tooltip--bottom-right" id="btnNewChat" data-tooltip="New conversation (Cmd+K)" data-i18n-title="new_conversation" aria-label="New conversation">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
           </button>
@@ -243,6 +246,16 @@
         </div>
       </div>
       <div class="session-search sidebar-search"><div class="session-search-field"><svg class="sidebar-search-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="11" cy="11" r="8"/><path d="M21 21l-4.35-4.35"/></svg><input id="sessionSearch" type="search" placeholder="جستجوی گفتگوها…" data-i18n-placeholder="filter_conversations" oninput="filterSessions()" autocomplete="off" data-1p-ignore data-lpignore="true" data-bwignore="true" data-form-type="other"><button type="button" id="sessionSearchClear" class="session-search-clear has-tooltip has-tooltip--bottom-right" aria-label="Clear conversation filter" data-tooltip="Clear conversation filter" onclick="clearSessionSearch()" hidden><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button></div></div>
+      <div class="sidebar-folder-bar" id="sidebarFolderBar">
+        <div class="sidebar-folder-bar-title">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/></svg>
+          <span>پوشه‌بندی و پروژه‌ها</span>
+        </div>
+        <button type="button" class="sidebar-new-folder-btn" onclick="promptCreateNewFolderInSidebar(event)" title="ایجاد پوشه جدید برای چت‌ها">
+          <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+          <span>پوشه جدید</span>
+        </button>
+      </div>
       <div class="session-list" id="sessionList"></div>
     </div>
     <!-- Tasks (cron) panel -->
@@ -511,42 +524,6 @@
               <div class="chat-todos-body-wrap" id="chatTodosBodyWrap">
                 <div class="chat-todos-body" id="chatTodosBody"></div>
                 <div class="chat-todos-scroll-cue" aria-hidden="true"></div>
-              </div>
-            </div>
-            <div class="chat-project-hub" id="chatProjectHub">
-              <div class="chat-project-bar">
-                <div class="chat-project-bar-left">
-                  <div class="chat-project-badge" id="chatProjectBadge" onclick="toggleProjectPickerInChat(event)" title="تغییر یا ایجاد پروژه">
-                    <span class="chat-project-dot" id="chatProjectDot" style="display:none"></span>
-                    <span class="chat-project-name" id="chatProjectName">تمام گفتگوها (عمومی)</span>
-                    <svg class="chat-project-caret" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="6 9 12 15 18 9"/></svg>
-                  </div>
-                  <span class="chat-project-count-badge" id="chatProjectCountBadge">۰ گفتگو</span>
-                </div>
-                <div class="chat-project-bar-right">
-                  <button type="button" class="chat-project-btn" id="btnToggleProjectChats" onclick="toggleProjectChatsPanel()" title="مشاهده و باز/بسته کردن تمامی چت‌های پروژه">
-                    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg>
-                    <span id="btnToggleProjectChatsLabel">چت‌های پروژه</span>
-                  </button>
-                  <button type="button" class="chat-project-btn primary" onclick="quickCreateProjectSession()" title="شروع گفتگوی جدید در این پروژه">
-                    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
-                    <span>گفتگوی تازه</span>
-                  </button>
-                </div>
-              </div>
-              <div class="chat-project-panel" id="chatProjectPanel" style="display:none">
-                <div class="chat-project-panel-header">
-                  <div class="chat-project-panel-title">
-                    <span id="chatProjectPanelTitleText">گفتگوهای این پروژه</span>
-                    <span class="chat-project-panel-sub" id="chatProjectPanelSub">پیام‌های هر چت را می‌توانید باز یا بسته کنید</span>
-                  </div>
-                  <div class="chat-project-panel-actions">
-                    <button type="button" class="sm-btn" onclick="toggleAllProjectChatMessages(true)">باز کردن همه پیام‌ها</button>
-                    <button type="button" class="sm-btn" onclick="toggleAllProjectChatMessages(false)">بستن همه پیام‌ها</button>
-                    <button type="button" class="sm-btn close-panel-btn" onclick="toggleProjectChatsPanel(false)">✕</button>
-                  </div>
-                </div>
-                <div class="chat-project-chats-list" id="chatProjectChatsList"></div>
               </div>
             </div>
             <div class="messages" id="messages">

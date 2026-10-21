@@ -10057,7 +10057,9 @@ function renderSessionListFromCache(){
   // Group sessions by Project / Folder
   const groups=[];
   if(pinned.length) groups.push({label:'\u2605 ' + (typeof t === 'function' ? (t('session_time_bucket_pinned') || 'Pinned') : 'Pinned'),items:pinned,isPinned:true});
-  if(Array.isArray(_allProjects) && _allProjects.length > 0){
+  
+  const hasProjects = Array.isArray(_allProjects) && _allProjects.length > 0;
+  if(hasProjects){
     const projectsMap = new Map();
     _allProjects.forEach(p => {
       projectsMap.set(p.project_id, { project: p, items: [] });
@@ -10072,7 +10074,7 @@ function renderSessionListFromCache(){
     }
     for(const [pid, data] of projectsMap.entries()){
       groups.push({
-        label: '📁 ' + data.project.name,
+        label: data.project.name,
         items: data.items,
         project: data.project,
         isFolder: true
@@ -10080,27 +10082,30 @@ function renderSessionListFromCache(){
     }
     if(unassigned.length > 0){
       groups.push({
-        label: '📂 سایر گفتگوها',
+        label: 'گفتگوهای عمومی',
         items: unassigned,
         isFolder: true,
         isUnassigned: true
       });
     }
   } else {
-    let curLabel=null,curItems=[];
-    for(const s of unpinned){
-      const ts=_sessionSortTimestampMs(s);
-      const label=_sessionTimeBucketLabel(ts, now);
-      if(label!==curLabel){
-        if(curItems.length) groups.push({label:curLabel,items:curItems});
-        curLabel=label;curItems=[s];
-      } else { curItems.push(s); }
-    }
-    if(curItems.length) groups.push({label:curLabel,items:curItems});
+    groups.push({
+      label: 'گفتگوهای عمومی',
+      items: unpinned,
+      isFolder: true,
+      isUnassigned: true
+    });
   }
+
+  const _isGroupCollapsed = (g) => {
+    if (searchQueryRaw) return false;
+    if (_groupCollapsed[g.label] !== undefined) return Boolean(_groupCollapsed[g.label]);
+    return false;
+  };
+
   const flatSessionRows=[];
   for(const g of groups){
-    if(_groupCollapsed[g.label]) continue;
+    if(_isGroupCollapsed(g)) continue;
     for(const s of g.items){ flatSessionRows.push({group:g,session:s}); }
   }
   _sessionVisibleSidebarIds=flatSessionRows.map(row=>row.session&&row.session.session_id).filter(Boolean);
@@ -10159,63 +10164,115 @@ function renderSessionListFromCache(){
   // headers remain real DOM so pin/archive/date grouping and clicks survive.
   let globalSessionRowIndex=0;
   for(const g of groups){
+    const isFolder = Boolean(g.isFolder);
     const wrapper=document.createElement('div');
-    wrapper.className='session-date-group';
+    wrapper.className='session-date-group' + (isFolder ? ' folder-group' : '');
     const hdr=document.createElement('div');
-    hdr.className='session-date-header'+(g.isPinned?' pinned':'')+(g.isFolder?' folder-header':'');
+    hdr.className='session-date-header'+(g.isPinned?' pinned':'')+(isFolder?' folder-header':'');
+    
+    const startDiv = document.createElement('div');
+    startDiv.className = 'folder-header-start';
+
     const caret=document.createElement('span');
-    caret.className='session-date-caret';
-    caret.textContent='\u25BE'; // down when expanded; rotated right when collapsed
+    caret.className='folder-caret session-date-caret';
+    caret.textContent='\u25BE'; // ▾ down
+
+    startDiv.appendChild(caret);
+
+    if (isFolder) {
+      if (g.project && g.project.color) {
+        const dot = document.createElement('span');
+        dot.className = 'folder-color-dot';
+        dot.style.background = g.project.color;
+        startDiv.appendChild(dot);
+      }
+      const icon = document.createElement('span');
+      icon.className = 'folder-icon';
+      icon.textContent = g.isUnassigned ? '📂' : '📁';
+      startDiv.appendChild(icon);
+    }
+
     const label=document.createElement('span');
     label.className='folder-label-title';
     label.textContent=g.label;
-    hdr.appendChild(caret);hdr.appendChild(label);
+    startDiv.appendChild(label);
+    hdr.appendChild(startDiv);
 
-    if(g.isFolder){
+    if(isFolder){
       const actions=document.createElement('div');
       actions.className='folder-hdr-actions';
-      actions.style.cssText='margin-inline-start: auto; display: inline-flex; align-items: center; gap: 6px;';
+      actions.onclick = (e) => e.stopPropagation();
 
       const countBadge=document.createElement('span');
       countBadge.className='folder-count-badge';
-      countBadge.textContent=String(g.items.length);
-      countBadge.style.cssText='font-size: 11px; opacity: 0.7; padding: 1px 6px; border-radius: 10px; background: var(--surface2, rgba(255,255,255,0.06)); font-family: ui-monospace, sans-serif;';
+      countBadge.textContent=`${g.items.length}`;
       actions.appendChild(countBadge);
 
       if(g.project){
         const addBtn=document.createElement('button');
         addBtn.type='button';
-        addBtn.className='folder-add-btn';
+        addBtn.className='folder-btn folder-add-btn';
         addBtn.title='گفتگوی جدید در این پوشه';
         addBtn.setAttribute('aria-label', 'New chat in folder');
-        addBtn.innerHTML='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" width="13" height="13"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>';
-        addBtn.style.cssText='width: 22px; height: 22px; border-radius: 6px; border: 1px solid var(--border2, #333); background: var(--surface, transparent); color: inherit; cursor: pointer; display: inline-flex; align-items: center; justify-content: center; opacity: 0.8; padding: 0;';
+        addBtn.innerHTML='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" width="12" height="12"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>';
         addBtn.onclick=(e)=>{
           e.stopPropagation();
           if(typeof newSession==='function'){
-            newSession({project_id: g.project.project_id});
+            newSession(null, {project_id: g.project.project_id});
           }
         };
         actions.appendChild(addBtn);
+
+        const moreBtn=document.createElement('button');
+        moreBtn.type='button';
+        moreBtn.className='folder-btn folder-more-btn';
+        moreBtn.title='تنظیمات و مدیریت پوشه';
+        moreBtn.innerHTML=ICONS.more;
+        moreBtn.onclick=(e)=>{
+          e.stopPropagation();
+          _showProjectContextMenu(e, g.project, moreBtn);
+        };
+        actions.appendChild(moreBtn);
       }
       hdr.appendChild(actions);
     }
+
     const body=document.createElement('div');
-    body.className='session-date-body';
-    const isGroupCollapsed=Boolean(_groupCollapsed[g.label]);
+    body.className='session-date-body' + (isFolder ? ' folder-body' : '');
+    const isGroupCollapsed=_isGroupCollapsed(g);
     if(isGroupCollapsed){body.style.display='none';caret.classList.add('collapsed');}
+
     hdr.onclick=()=>{
-      const isCollapsed=body.style.display==='none';
-      body.style.display=isCollapsed?'':'none';
-      caret.classList.toggle('collapsed',!isCollapsed);
+      const nextCollapsed = !_isGroupCollapsed(g);
+      body.style.display=nextCollapsed?'none':'';
+      caret.classList.toggle('collapsed',nextCollapsed);
       _pending.add(g.label);
-      _groupCollapsed[g.label]=!isCollapsed;
+      _groupCollapsed[g.label]=nextCollapsed;
       _saveCollapsed();
       renderSessionListFromCache();
     };
     wrapper.appendChild(hdr);
+
     let groupTopPad=0;
     let groupBottomPad=0;
+
+    if(isFolder && g.items.length === 0 && !isGroupCollapsed){
+      const emptyRow = document.createElement('div');
+      emptyRow.className = 'folder-empty-row';
+      emptyRow.innerHTML = `
+        <span style="opacity:0.6;font-size:11px">هنوز گفتگویی در این پوشه نیست.</span>
+        <button type="button" class="folder-empty-add-btn" style="border:none;background:var(--accent);color:#fff;border-radius:4px;padding:2px 6px;font-size:10.5px;cursor:pointer">+ شروع چت</button>
+      `;
+      const emptyBtn = emptyRow.querySelector('.folder-empty-add-btn');
+      if (emptyBtn) {
+        emptyBtn.onclick = (e) => {
+          e.stopPropagation();
+          if(typeof newSession==='function') newSession(null, {project_id: g.project ? g.project.project_id : null});
+        };
+      }
+      body.appendChild(emptyRow);
+    }
+
     for(const s of g.items){
       if(isGroupCollapsed) continue;
       const rowIndex=globalSessionRowIndex++;
@@ -10914,11 +10971,28 @@ function renderSessionListFromCache(){
     if(attention&&attention.title) state.title=attention.title;
     else if(_stateTip) state.title=_stateTip;
     el.appendChild(state);
-    // Single trigger button that opens a shared dropdown menu
+    // Trigger buttons for folder move and shared dropdown menu
     let actions=null;
     if(!readOnly){
       actions=document.createElement('div');
       actions.className='session-actions';
+
+      const moveBtn=document.createElement('button');
+      moveBtn.type='button';
+      moveBtn.className='session-folder-move-trigger';
+      moveBtn.title='انتقال به پوشه / پروژه';
+      moveBtn.setAttribute('aria-label', 'Move to folder');
+      moveBtn.innerHTML=ICONS.folder;
+      const stopMovePointer=(e)=>e.stopPropagation();
+      moveBtn.onpointerdown=stopMovePointer;
+      moveBtn.onpointerup=stopMovePointer;
+      moveBtn.onclick=(e)=>{
+        e.stopPropagation();
+        e.preventDefault();
+        _showProjectPicker(s, moveBtn);
+      };
+      actions.appendChild(moveBtn);
+
       const menuBtn=document.createElement('button');
       menuBtn.type='button';
       menuBtn.className='session-actions-trigger';
@@ -13658,6 +13732,33 @@ function navigateSession(dir){
   const next=sids[Math.min(Math.max(i+dir,0),sids.length-1)];
   if(next&&next!==cur) loadSession(next);
 }
+
+async function promptCreateNewFolderInSidebar(e){
+  if(e) e.stopPropagation();
+  const name=prompt('نام پوشه / پروژه جدید را وارد کنید:');
+  if(!name||!name.trim()) return;
+  const cleanName=name.trim();
+  const colors=(typeof PROJECT_COLORS!=='undefined'&&Array.isArray(PROJECT_COLORS))
+    ? PROJECT_COLORS
+    : ['#3b82f6','#10b981','#f59e0b','#ec4899','#8b5cf6','#06b6d4','#6366f1'];
+  const color=colors[Math.floor(Math.random()*colors.length)];
+  try {
+    const res=await api('/api/projects/create',{
+      method:'POST',
+      body:JSON.stringify({name:cleanName,color})
+    });
+    if(res&&res.project){
+      if(!Array.isArray(_allProjects)) _allProjects=[];
+      _allProjects.push(res.project);
+      window._allProjects=_allProjects;
+      if(typeof showToast==='function') showToast('پوشه "'+res.project.name+'" با موفقیت ساخته شد');
+      await renderSessionList({deferWhileInteracting:false});
+    }
+  }catch(err){
+    if(typeof showToast==='function') showToast('خطا در ساخت پوشه: '+(err.message||err));
+  }
+}
+window.promptCreateNewFolderInSidebar=promptCreateNewFolderInSidebar;
 
 document.addEventListener('keydown',(e)=>{
   if(e.key!=='j'&&e.key!=='k') return;
