@@ -17577,44 +17577,6 @@ def handle_post(handler, parsed) -> bool:
     if parsed.path == "/api/health/restart":
         return _handle_health_restart(handler)
 
-    if parsed.path == "/api/orchestrator/restart":
-        from api.service_orchestrator import restart_all_hermes_services
-        body_data = {}
-        try:
-            from api.helpers import read_body
-            body_data = read_body(handler) or {}
-        except Exception:
-            pass
-        res = restart_all_hermes_services(
-            clear_quota_cache=bool(body_data.get("clear_quota_cache", True)),
-            include_webui=bool(body_data.get("include_webui", True)),
-            include_9router=bool(body_data.get("include_9router", True)),
-            include_panel=bool(body_data.get("include_panel", True)),
-            include_gateway=bool(body_data.get("include_gateway", True)),
-            include_proxy=bool(body_data.get("include_proxy", True)),
-        )
-        j(handler, res, status=200 if res.get("ok") else (429 if res.get("busy") else 500))
-        return True
-
-    if parsed.path == "/api/orchestrator/reboot":
-        from api.service_orchestrator import reboot_host_server
-        res = reboot_host_server()
-        j(handler, res, status=200 if res.get("ok") else 500)
-        return True
-
-    if parsed.path == "/api/orchestrator/panel-url":
-        from api.service_orchestrator import _save_orchestrator_config
-        body_data = {}
-        try:
-            from api.helpers import read_body
-            body_data = read_body(handler) or {}
-        except Exception:
-            pass
-        url = str(body_data.get("url", "")).strip()
-        _save_orchestrator_config({"web_panel_url": url})
-        j(handler, {"ok": True, "url": url})
-        return True
-
     if parsed.path == "/api/upload":
         return handle_upload(handler)
     if parsed.path == "/api/upload/extract":
@@ -17649,6 +17611,34 @@ def handle_post(handler, parsed) -> bool:
     if not _guard_request_session_visibility(handler, parsed, body=body, method="POST"):
         if diag:
             diag.finish()
+        return True
+
+    if parsed.path == "/api/orchestrator/restart":
+        from api.service_orchestrator import restart_all_hermes_services
+        body_data = body if isinstance(body, dict) else {}
+        res = restart_all_hermes_services(
+            clear_quota_cache=bool(body_data.get("clear_quota_cache", True)),
+            include_webui=bool(body_data.get("include_webui", True)),
+            include_9router=bool(body_data.get("include_9router", True)),
+            include_panel=bool(body_data.get("include_panel", True)),
+            include_gateway=bool(body_data.get("include_gateway", True)),
+            include_proxy=bool(body_data.get("include_proxy", True)),
+        )
+        j(handler, res, status=200 if res.get("ok") else (429 if res.get("busy") else 500))
+        return True
+
+    if parsed.path == "/api/orchestrator/reboot":
+        from api.service_orchestrator import reboot_host_server
+        res = reboot_host_server()
+        j(handler, res, status=200 if res.get("ok") else 500)
+        return True
+
+    if parsed.path == "/api/orchestrator/panel-url":
+        from api.service_orchestrator import _save_orchestrator_config
+        body_data = body if isinstance(body, dict) else {}
+        url = str(body_data.get("url", "")).strip()
+        _save_orchestrator_config({"web_panel_url": url})
+        j(handler, {"ok": True, "url": url})
         return True
 
     if parsed.path == "/api/escape/authorize":
