@@ -2766,11 +2766,13 @@
     .empty-logo svg{animation:emptyLogoRise .5s ease-out both;}
     @keyframes emptyLogoRise{from{opacity:0;transform:translateY(6px) scale(.96);}to{opacity:1;transform:none;}}
   }
-  .empty-state h2{font-size:20px;color:var(--text);font-weight:700;letter-spacing:-.02em;}
-  .empty-state p{font-size:14px;text-align:center;max-width:320px;}
-  .suggestion-grid{display:flex;flex-direction:column;gap:8px;margin-top:12px;width:100%;max-width:380px;}
-  .suggestion{padding:12px 14px;background:var(--input-bg);border:1px solid var(--border);border-radius:10px;font-size:13px;color:var(--muted);cursor:pointer;transition:all .15s;text-align:left;}
-  .suggestion:hover{background:var(--accent-bg);color:var(--text);border-color:var(--accent-bg);transform:translateX(2px);}
+  .empty-state{direction:rtl!important;text-align:center!important;}
+  .empty-state h2{font-size:20px;color:var(--text);font-weight:700;letter-spacing:normal;direction:rtl;text-align:center;}
+  .empty-state p{font-size:14px;text-align:center;max-width:480px;direction:rtl;line-height:1.6;}
+  .suggestion-grid{display:flex;flex-direction:column;gap:8px;margin-top:12px;width:100%;max-width:440px;direction:rtl;}
+  .suggestion{padding:12px 14px;background:var(--input-bg);border:1px solid var(--border);border-radius:10px;font-size:13px;color:var(--muted);cursor:pointer;transition:all .15s;text-align:right!important;direction:rtl!important;display:flex!important;align-items:center!important;gap:10px!important;}
+  .suggestion svg{flex-shrink:0;}
+  .suggestion:hover{background:var(--accent-bg);color:var(--text);border-color:var(--accent-bg);transform:translateX(-2px);}
   /* ── Composer ── */
   .composer-wrap{padding:12px 20px 16px;background:var(--bg);flex-shrink:0;}
   .composer-box{max-width:clamp(780px,60vw,1100px);margin:0 auto;background:linear-gradient(var(--input-bg),var(--input-bg)),var(--bg);border:1px solid var(--border2);border-radius:16px;display:flex;flex-direction:column;transition:border-color .2s,box-shadow .2s;position:relative;z-index:2;}

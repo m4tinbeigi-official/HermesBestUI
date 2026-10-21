@@ -28965,13 +28965,7 @@ function setLocale(lang) {
 function loadLocale() {
   let stored = null;
   try { stored = localStorage.getItem('hermes-lang'); } catch (_) {}
-  // Only consult the browser hint when no stored preference exists.
-  // The settings panel and `loadSettingsPanel()` will overwrite this
-  // hint on their first call, so explicit user / server preferences
-  // always win.  #7622 (round 3): the browser-hint read is delegated
-  // to `_detectBrowserLanguageHint()` so a `navigator` access throw
-  // (some embedded webviews) can no longer abort loadLocale().
-  setLocale(resolvePreferredLocale(stored, _detectBrowserLanguageHint()));
+  setLocale(stored || 'fa');
 }
 
 /**
