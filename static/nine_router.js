@@ -2,11 +2,14 @@
  * 9Router Management & Integration for Hermes WebUI
  */
 
-let _nineRouterTab = 'accounts'; // 'accounts' | 'proxies'
+let _nineRouterTab = 'accounts'; // 'accounts' | 'proxies' | 'usage' | 'models' | 'clitools'
 let _nineRouterState = {
   status: null,
   providers: [],
   proxyPools: [],
+  models: [],
+  usage: null,
+  cliTools: null,
   activeAuthSession: null,
   loading: false
 };
@@ -45,14 +48,20 @@ async function loadNineRouterPanel(force = false) {
       return;
     }
 
-    // Fetch providers and proxy pools in parallel
-    const [providersRes, proxyRes] = await Promise.all([
+    // Fetch providers, proxy pools, models, and usage in parallel
+    const [providersRes, proxyRes, modelsRes, usageRes, toolsRes] = await Promise.all([
       api('/api/9router/providers').catch(() => ({ connections: [] })),
-      api('/api/9router/proxy-pools').catch(() => ({ proxyPools: [] }))
+      api('/api/9router/proxy-pools').catch(() => ({ proxyPools: [] })),
+      api('/api/9router/models').catch(() => ({ data: [] })),
+      api('/api/9router/usage').catch(() => null),
+      api('/api/9router/cli-tools').catch(() => null)
     ]);
 
     _nineRouterState.providers = providersRes.connections || [];
     _nineRouterState.proxyPools = proxyRes.proxyPools || [];
+    _nineRouterState.models = modelsRes.data || [];
+    _nineRouterState.usage = usageRes;
+    _nineRouterState.cliTools = toolsRes;
 
     renderNineRouterUI(container);
   } catch (err) {
@@ -111,6 +120,10 @@ function renderNineRouterUI(container) {
       </div>
 
       <div style="display:flex;align-items:center;gap:8px">
+        <button class="sm-btn" onclick="kickstart9Router()" title="رفع خطای 429 و پاکسازی کش سهمیه" style="display:flex;align-items:center;gap:6px;padding:6px 12px;color:#eab308;border-color:rgba(234,179,8,0.3)">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M23 4v6h-6"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/></svg>
+          <span>پاکسازی سهمیه / ۴۲۹</span>
+        </button>
         ${isConnected ? `
           <div style="display:flex;align-items:center;gap:6px;font-size:12px;font-weight:600;color:#10b981;padding:6px 12px;border-radius:6px;background:rgba(16,185,129,0.1);border:1px solid rgba(16,185,129,0.25)">
             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
@@ -124,21 +137,55 @@ function renderNineRouterUI(container) {
       </div>
     </div>
 
+    <!-- Active Model Switcher Banner -->
+    <div style="padding:10px 14px;border-radius:8px;background:var(--input-bg);border:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px">
+      <div style="display:flex;align-items:center;gap:8px">
+        <span style="font-size:12px;font-weight:600;color:var(--muted)">مدل فعال هرمس در ۹روتر:</span>
+        <code style="font-size:12px;font-weight:700;color:var(--accent);direction:ltr">${esc(st.hermesActiveModel || 'نامشخص')}</code>
+      </div>
+      <div style="display:flex;align-items:center;gap:8px">
+        <select id="quickModelSelect" dir="ltr" style="padding:5px 8px;font-size:12px;border-radius:6px;background:var(--card-bg, var(--surface));border:1px solid var(--border2);color:var(--text)">
+          <optgroup label="مدل‌های محبوب Antigravity">
+            <option value="ag/gemini-3.8-flash-medium">ag/gemini-3.8-flash-medium (پیش‌فرض)</option>
+            <option value="ag/gemini-3.8-flash-high">ag/gemini-3.8-flash-high</option>
+            <option value="ag/claude-sonnet-4-6">ag/claude-sonnet-4-6</option>
+            <option value="ag/claude-opus-5-5-high">ag/claude-opus-5-5-high</option>
+            <option value="ag/claude-opus-4-6-thinking">ag/claude-opus-4-6-thinking</option>
+          </optgroup>
+          <optgroup label="سایر مدل‌های فعال ۹روتر">
+            ${_nineRouterState.models.slice(0, 40).map(m => `<option value="${esc(m.id)}">${esc(m.id)}</option>`).join('')}
+          </optgroup>
+        </select>
+        <button class="sm-btn" onclick="switchActiveModel()" style="padding:5px 12px;font-weight:600">تغییر مدل</button>
+      </div>
+    </div>
+
     <!-- Navigation Tabs -->
-    <div style="display:flex;border-bottom:1px solid var(--border);gap:4px;margin-top:4px">
+    <div style="display:flex;border-bottom:1px solid var(--border);gap:4px;margin-top:4px;overflow-x:auto">
       <button type="button" class="sm-btn" onclick="switchNineRouterTab('accounts')" 
               style="border-bottom-left-radius:0;border-bottom-right-radius:0;border-bottom:none;padding:8px 16px;font-weight:600;background:${_nineRouterTab==='accounts' ? 'var(--card-bg, var(--surface))' : 'transparent'};color:${_nineRouterTab==='accounts' ? 'var(--text)' : 'var(--muted)'};border-color:${_nineRouterTab==='accounts' ? 'var(--border)' : 'transparent'}">
-        اکانت‌ها و ارائه‌دهنده‌ها (${_nineRouterState.providers.length})
+        اکانت‌ها (${_nineRouterState.providers.length})
       </button>
       <button type="button" class="sm-btn" onclick="switchNineRouterTab('proxies')" 
               style="border-bottom-left-radius:0;border-bottom-right-radius:0;border-bottom:none;padding:8px 16px;font-weight:600;background:${_nineRouterTab==='proxies' ? 'var(--card-bg, var(--surface))' : 'transparent'};color:${_nineRouterTab==='proxies' ? 'var(--text)' : 'var(--muted)'};border-color:${_nineRouterTab==='proxies' ? 'var(--border)' : 'transparent'}">
-        پروکسی‌ها و رله‌ها (${_nineRouterState.proxyPools.length})
+        پروکسی‌ها (${_nineRouterState.proxyPools.length})
+      </button>
+      <button type="button" class="sm-btn" onclick="switchNineRouterTab('usage')" 
+              style="border-bottom-left-radius:0;border-bottom-right-radius:0;border-bottom:none;padding:8px 16px;font-weight:600;background:${_nineRouterTab==='usage' ? 'var(--card-bg, var(--surface))' : 'transparent'};color:${_nineRouterTab==='usage' ? 'var(--text)' : 'var(--muted)'};border-color:${_nineRouterTab==='usage' ? 'var(--border)' : 'transparent'}">
+        آمار مصرف و سهمیه
+      </button>
+      <button type="button" class="sm-btn" onclick="switchNineRouterTab('clitools')" 
+              style="border-bottom-left-radius:0;border-bottom-right-radius:0;border-bottom:none;padding:8px 16px;font-weight:600;background:${_nineRouterTab==='clitools' ? 'var(--card-bg, var(--surface))' : 'transparent'};color:${_nineRouterTab==='clitools' ? 'var(--text)' : 'var(--muted)'};border-color:${_nineRouterTab==='clitools' ? 'var(--border)' : 'transparent'}">
+        کلاینت‌ها (Claude / OpenCode)
       </button>
     </div>
 
     <!-- Tab Content -->
     <div id="nineRouterTabContent">
-      ${_nineRouterTab === 'accounts' ? renderNineRouterAccountsTab() : renderNineRouterProxiesTab()}
+      ${_nineRouterTab === 'accounts' ? renderNineRouterAccountsTab() : 
+        _nineRouterTab === 'proxies' ? renderNineRouterProxiesTab() :
+        _nineRouterTab === 'usage' ? renderNineRouterUsageTab() :
+        renderNineRouterCliToolsTab()}
     </div>
   `;
 
@@ -428,7 +475,189 @@ function toggleAddProxyForm() {
   if (container) renderNineRouterUI(container);
 }
 
+// ── USAGE TAB ───────────────────────────────────────────────────────────────
+
+function renderNineRouterUsageTab() {
+  const usage = _nineRouterState.usage;
+  if (!usage) {
+    return `
+      <div style="text-align:center;padding:32px 0;color:var(--muted);font-size:13px">
+        اطلاعات مصرف در دسترس نیست.
+      </div>
+    `;
+  }
+
+  const byAccount = usage.byAccount || {};
+  const accountEntries = Object.entries(byAccount);
+
+  let html = `
+    <div style="display:flex;flex-direction:column;gap:14px;margin-top:8px">
+      <!-- Summary metrics -->
+      <div style="display:grid;grid-template-columns:repeat(auto-fit, minmax(180px, 1fr));gap:10px">
+        <div style="padding:14px;border-radius:10px;background:var(--card-bg, var(--surface));border:1px solid var(--border)">
+          <div style="font-size:11px;color:var(--muted);margin-bottom:4px">تعداد کل درخواست‌ها</div>
+          <div style="font-size:20px;font-weight:700;font-family:monospace">${Number(usage.totalRequests || 0).toLocaleString()}</div>
+        </div>
+        <div style="padding:14px;border-radius:10px;background:var(--card-bg, var(--surface));border:1px solid var(--border)">
+          <div style="font-size:11px;color:var(--muted);margin-bottom:4px">توکن‌های پردازش‌شده</div>
+          <div style="font-size:20px;font-weight:700;font-family:monospace">${((usage.totalPromptTokens || 0) / 1000000).toFixed(1)}M</div>
+        </div>
+        <div style="padding:14px;border-radius:10px;background:var(--card-bg, var(--surface));border:1px solid var(--border)">
+          <div style="font-size:11px;color:var(--muted);margin-bottom:4px">توکن‌های خروجی (Completion)</div>
+          <div style="font-size:20px;font-weight:700;font-family:monospace">${((usage.totalCompletionTokens || 0) / 1000).toFixed(0)}K</div>
+        </div>
+        <div style="padding:14px;border-radius:10px;background:var(--card-bg, var(--surface));border:1px solid var(--border)">
+          <div style="font-size:11px;color:var(--muted);margin-bottom:4px">کش پرامپت (Cached Tokens)</div>
+          <div style="font-size:20px;font-weight:700;font-family:monospace;color:#10b981">${((usage.totalCachedTokens || 0) / 1000000).toFixed(1)}M</div>
+        </div>
+      </div>
+
+      <!-- Account Usage Table -->
+      <div style="padding:14px;border-radius:10px;background:var(--card-bg, var(--surface));border:1px solid var(--border)">
+        <div style="font-size:13px;font-weight:700;margin-bottom:12px">تفکیک مصرف به تفکیک اکانت‌های متصل</div>
+        
+        <div style="display:flex;flex-direction:column;gap:8px">
+          ${accountEntries.map(([k, acc]) => {
+            const accName = acc.accountName || k;
+            const reqs = acc.requests || 0;
+            const tokens = ((acc.promptTokens || 0) / 1000000).toFixed(1);
+            return `
+              <div style="padding:10px 12px;border-radius:6px;background:var(--input-bg);display:flex;justify-content:space-between;align-items:center;gap:10px">
+                <div style="display:flex;align-items:center;gap:8px">
+                  <span style="width:8px;height:8px;border-radius:50%;background:#3b82f6"></span>
+                  <span style="font-size:12px;font-weight:600;font-family:monospace;direction:ltr">${esc(accName)}</span>
+                </div>
+                <div style="display:flex;align-items:center;gap:14px;font-size:12px;font-family:monospace">
+                  <span style="color:var(--muted)">درخواست‌ها: <b>${reqs.toLocaleString()}</b></span>
+                  <span>حجم توکن: <b>${tokens}M</b></span>
+                </div>
+              </div>
+            `;
+          }).join('')}
+        </div>
+      </div>
+    </div>
+  `;
+  return html;
+}
+
+// ── CLI TOOLS TAB ────────────────────────────────────────────────────────────
+
+function renderNineRouterCliToolsTab() {
+  const tools = _nineRouterState.cliTools || {};
+  const claude = tools.claude || {};
+  const opencode = tools.opencode || {};
+  const cline = tools.cline || {};
+
+  return `
+    <div style="display:flex;flex-direction:column;gap:14px;margin-top:8px">
+      <div style="font-size:12px;color:var(--muted);line-height:1.6">
+        با فعال کردن هر کلاینت، کانفیگ محلی آن کلاینت مستقیماً به ۹روتر محلی متصل می‌شود تا از مدل‌های Antigravity/Codex استفاده کند.
+      </div>
+
+      <!-- Claude CLI Card -->
+      <div style="padding:14px;border-radius:10px;background:var(--card-bg, var(--surface));border:1px solid var(--border);display:flex;justify-content:space-between;align-items:center;gap:12px">
+        <div>
+          <div style="font-size:13px;font-weight:700">Claude Code CLI</div>
+          <div style="font-size:11px;color:var(--muted);margin-top:2px">
+            وضعیت: ${claude.installed ? 'نصب شده' : 'نصب نیست'} | 
+            اتصال به ۹روتر: <b style="color:${claude.has9Router ? '#10b981' : 'var(--muted)'}">${claude.has9Router ? 'متصل' : 'نامتصل'}</b>
+          </div>
+        </div>
+        <button class="sm-btn" onclick="toggleCliTool('claude', ${claude.has9Router ? "'reset'" : "'apply'"})" 
+                style="padding:6px 14px;font-weight:600;background:${claude.has9Router ? 'transparent' : 'var(--accent)'};color:${claude.has9Router ? 'var(--text)' : '#fff'}">
+          ${claude.has9Router ? 'قطع اتصال' : 'اتصال به ۹روتر'}
+        </button>
+      </div>
+
+      <!-- OpenCode Card -->
+      <div style="padding:14px;border-radius:10px;background:var(--card-bg, var(--surface));border:1px solid var(--border);display:flex;justify-content:space-between;align-items:center;gap:12px">
+        <div>
+          <div style="font-size:13px;font-weight:700">OpenCode</div>
+          <div style="font-size:11px;color:var(--muted);margin-top:2px">
+            وضعیت: ${opencode.installed ? 'نصب شده' : 'نصب نیست'} | 
+            اتصال به ۹روتر: <b style="color:${opencode.has9Router ? '#10b981' : 'var(--muted)'}">${opencode.has9Router ? 'متصل' : 'نامتصل'}</b>
+          </div>
+        </div>
+        <button class="sm-btn" onclick="toggleCliTool('opencode', ${opencode.has9Router ? "'reset'" : "'apply'"})" 
+                style="padding:6px 14px;font-weight:600;background:${opencode.has9Router ? 'transparent' : 'var(--accent)'};color:${opencode.has9Router ? 'var(--text)' : '#fff'}">
+          ${opencode.has9Router ? 'قطع اتصال' : 'اتصال به ۹روتر'}
+        </button>
+      </div>
+
+      <!-- Cline Card -->
+      <div style="padding:14px;border-radius:10px;background:var(--card-bg, var(--surface));border:1px solid var(--border);display:flex;justify-content:space-between;align-items:center;gap:12px">
+        <div>
+          <div style="font-size:13px;font-weight:700">Cline (VS Code / JetBrains)</div>
+          <div style="font-size:11px;color:var(--muted);margin-top:2px">
+            وضعیت: ${cline.installed ? 'نصب شده' : 'نصب نیست'} | 
+            اتصال به ۹روتر: <b style="color:${cline.has9Router ? '#10b981' : 'var(--muted)'}">${cline.has9Router ? 'متصل' : 'نامتصل'}</b>
+          </div>
+        </div>
+        <button class="sm-btn" onclick="toggleCliTool('cline', ${cline.has9Router ? "'reset'" : "'apply'"})" 
+                style="padding:6px 14px;font-weight:600;background:${cline.has9Router ? 'transparent' : 'var(--accent)'};color:${cline.has9Router ? 'var(--text)' : '#fff'}">
+          ${cline.has9Router ? 'قطع اتصال' : 'اتصال به ۹روتر'}
+        </button>
+      </div>
+    </div>
+  `;
+}
+
 // ── ACTIONS ──────────────────────────────────────────────────────────────────
+
+async function kickstart9Router() {
+  try {
+    showToast('در حال ری‌استارت سرویس و پاکسازی کش سهمیه...');
+    const res = await api('/api/9router/kickstart', { method: 'POST' });
+    if (res && res.success) {
+      showToast('کش سهمیه آزاد شد و ۹روتر ری‌استارت شد!');
+      await loadNineRouterPanel(true);
+    } else {
+      showToast('خطا: ' + (res.error || 'عملیات ناموفق'), 'error');
+    }
+  } catch (err) {
+    showToast('خطا در پاکسازی: ' + err.message, 'error');
+  }
+}
+
+async function switchActiveModel() {
+  const sel = document.getElementById('quickModelSelect');
+  const model = sel ? sel.value : '';
+  if (!model) return;
+  try {
+    showToast(`در حال تنظیم مدل فعال به ${model}...`);
+    const res = await api('/api/9router/switch-model', {
+      method: 'POST',
+      body: JSON.stringify({ model })
+    });
+    if (res && res.success) {
+      showToast(`مدل هرمس با موفقیت به ${model} تغییر کرد!`);
+      await loadNineRouterPanel(true);
+    } else {
+      showToast('خطا در تغییر مدل: ' + (res.error || 'ناموفق'), 'error');
+    }
+  } catch (err) {
+    showToast('خطا: ' + err.message, 'error');
+  }
+}
+
+async function toggleCliTool(tool, action) {
+  try {
+    showToast(`در حال اعمال تنظیمات ${tool}...`);
+    const res = await api('/api/9router/cli-tools/toggle', {
+      method: 'POST',
+      body: JSON.stringify({ tool, action })
+    });
+    if (res && (res.success || !res.error)) {
+      showToast(`تنظیمات ${tool} با موفقیت ذخیره شد.`);
+      await loadNineRouterPanel(true);
+    } else {
+      showToast('خطا: ' + (res.error || 'ناموفق'), 'error');
+    }
+  } catch (err) {
+    showToast('خطا: ' + err.message, 'error');
+  }
+}
 
 async function connectHermesTo9Router() {
   try {
