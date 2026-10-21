@@ -935,6 +935,9 @@ $('btnSend').onclick=()=>{
   }
   send();
 };
+$('btnContinue')?.addEventListener('click',()=>{
+  if(typeof sendContinue==='function') sendContinue();
+});
 $('mainChat')?.addEventListener('pointerdown', closeMobileWorkspacePanelFromChat);
 let _attachChoiceOpen=false;
 let _attachChoicePointerDown=false;

@@ -10526,6 +10526,7 @@ async function loadSettingsPanel(){
     }
     _syncHermesPanelSessionActions();
     if(typeof loadDashboardSettings==='function') loadDashboardSettings();
+    if(typeof loadOrchestratorStatus==='function') loadOrchestratorStatus();
     loadProvidersPanel(); // load provider cards in background
     loadPluginsPanel(); // load plugin/hook visibility in background
     loadExtensionsPanel(); // load extension diagnostics in background

@@ -2389,8 +2389,262 @@ function _initDashboardLinkProbe(){
 }
 if(document.readyState==='complete'){
   _initDashboardLinkProbe();
+  if(typeof loadOrchestratorStatus==='function') loadOrchestratorStatus();
 }else{
-  document.addEventListener('DOMContentLoaded',_initDashboardLinkProbe,{once:true});
+  document.addEventListener('DOMContentLoaded',()=>{
+    _initDashboardLinkProbe();
+    if(typeof loadOrchestratorStatus==='function') loadOrchestratorStatus();
+  },{once:true});
+}
+
+/* ── Mr Hermes Unified Services Orchestrator & Recovery Hub ──────────────── */
+let _orchestratorCache = null;
+let _orchestratorOverlayTimer = null;
+
+async function loadOrchestratorStatus(force) {
+  try {
+    const res = await api('/api/orchestrator/status', { timeoutToast: false });
+    if (!res || !res.ok) return;
+    _orchestratorCache = res;
+
+    // 1. Update Web Panel URL links across UI
+    const panelUrl = res.web_panel_url || ('http://' + (window.location.hostname || '127.0.0.1') + ':7425');
+    const inputEl = $('settingsWebPanelUrl');
+    if (inputEl && !inputEl.dataset.userEdited) {
+      inputEl.value = panelUrl;
+    }
+    const btnLink = $('btnOpenWebPanelLink');
+    if (btnLink) btnLink.href = panelUrl;
+    const titlebarLink = $('btnTitlebarWebPanel');
+    if (titlebarLink) titlebarLink.href = panelUrl;
+    const railLink = $('railBtnWebPanel');
+    if (railLink) railLink.href = panelUrl;
+
+    // 2. Render Services Grid
+    const gridEl = $('orchestratorServicesGrid');
+    if (gridEl && Array.isArray(res.services)) {
+      gridEl.innerHTML = res.services.map(svc => {
+        const isOnline = !!svc.online;
+        const dotClass = isOnline ? 'online' : 'offline';
+        const statusText = isOnline ? (svc.latency_ms ? `${svc.latency_ms}ms` : 'فعال') : 'غیرفعال';
+        const portText = svc.port ? `:${svc.port}` : '';
+        return `
+          <div class="orchestrator-service-item" id="svc_${svc.id}">
+            <div class="orchestrator-service-top">
+              <span class="orchestrator-service-name">${esc(svc.name)}</span>
+              <span class="orchestrator-dot ${dotClass}" title="${isOnline ? 'Online' : 'Offline'}"></span>
+            </div>
+            <div class="orchestrator-service-meta">
+              <span>${portText}</span>
+              <span style="color:${isOnline ? 'var(--text)' : '#ef4444'}">${statusText}</span>
+            </div>
+          </div>
+        `;
+      }).join('');
+    }
+
+    // 3. Update Autostart Badge
+    const autostartEl = $('orchestratorAutostartBadge');
+    const autostartText = $('orchestratorAutostartText');
+    if (autostartEl && res.autostart) {
+      const isGuaranteed = !!res.autostart.guaranteed;
+      autostartEl.className = 'orchestrator-autostart-badge' + (isGuaranteed ? '' : ' warning');
+      const dot = autostartEl.querySelector('.orchestrator-dot');
+      if (dot) dot.className = 'orchestrator-dot ' + (isGuaranteed ? 'online' : 'offline');
+      if (autostartText) {
+        autostartText.textContent = isGuaranteed
+          ? (typeof t === 'function' ? t('orchestrator_autostart_guaranteed') : 'بوت خودکار: تضمین‌شده')
+          : (typeof t === 'function' ? t('orchestrator_autostart_disabled') : 'بوت خودکار: غیرفعال');
+      }
+    }
+  } catch (err) {
+    // leave existing view intact
+  }
+}
+
+async function saveWebPanelUrlSettings() {
+  const inputEl = $('settingsWebPanelUrl');
+  if (!inputEl) return;
+  const url = (inputEl.value || '').trim();
+  try {
+    const res = await api('/api/orchestrator/panel-url', {
+      method: 'POST',
+      body: JSON.stringify({ url: url })
+    });
+    if (res && res.ok) {
+      inputEl.dataset.userEdited = 'true';
+      if ($('btnOpenWebPanelLink')) $('btnOpenWebPanelLink').href = url || 'http://127.0.0.1:7425';
+      if ($('btnTitlebarWebPanel')) $('btnTitlebarWebPanel').href = url || 'http://127.0.0.1:7425';
+      if ($('railBtnWebPanel')) $('railBtnWebPanel').href = url || 'http://127.0.0.1:7425';
+      showToast(typeof t === 'function' ? t('settings_saved', 'ذخیره شد') : 'تنظیمات ذخیره شد');
+    }
+  } catch (err) {
+    showToast('خطا در ذخیره آدرس وب‌پنل: ' + err.message);
+  }
+}
+
+function openServicesOrchestratorModal() {
+  switchPanel('settings');
+  switchSettingsSection('system');
+  const card = $('orchestratorHubCard');
+  if (card) {
+    card.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    card.classList.add('settings-field-highlight');
+    setTimeout(() => card.classList.remove('settings-field-highlight'), 1800);
+  }
+  loadOrchestratorStatus(true);
+}
+
+function closeOrchestratorModal() {
+  const overlay = $('orchestratorOverlay');
+  if (overlay) overlay.style.display = 'none';
+  if (_orchestratorOverlayTimer) {
+    clearInterval(_orchestratorOverlayTimer);
+    _orchestratorOverlayTimer = null;
+  }
+}
+
+async function triggerRestartAllServices() {
+  const clearQuota = $('chkClearQuotaCache') ? $('chkClearQuotaCache').checked : true;
+  const includeWebui = $('chkIncludeWebUI') ? $('chkIncludeWebUI').checked : true;
+
+  const overlay = $('orchestratorOverlay');
+  const titleEl = $('orchestratorModalTitle');
+  const statusEl = $('orchestratorModalStatus');
+  const barEl = $('orchestratorProgressBar');
+  const timerEl = $('orchestratorTimer');
+  const cancelBtn = $('btnCancelOrchestratorModal');
+
+  if (overlay) overlay.style.display = 'flex';
+  if (cancelBtn) cancelBtn.style.display = 'none';
+  if (titleEl) titleEl.textContent = typeof t === 'function' ? t('orchestrator_restarting_title') : 'در حال ری‌استارت سرویس‌های هرمس...';
+  if (statusEl) statusEl.textContent = typeof t === 'function' ? t('orchestrator_restarting_status') : 'در حال پاک‌سازی کش و راه‌اندازی تمیز ۹روتر، وب‌یوآی، وب‌پنل و گیت‌وی...';
+  if (barEl) barEl.style.width = '10%';
+
+  try {
+    await api('/api/orchestrator/restart', {
+      method: 'POST',
+      body: JSON.stringify({
+        clear_quota_cache: clearQuota,
+        include_webui: includeWebui,
+        include_9router: true,
+        include_panel: true,
+        include_gateway: true,
+        include_proxy: true
+      })
+    });
+  } catch (err) {
+    // Process restart may interrupt stream; continue to polling
+  }
+
+  let secondsLeft = 10;
+  if (timerEl) timerEl.textContent = `${secondsLeft}s`;
+  if (_orchestratorOverlayTimer) clearInterval(_orchestratorOverlayTimer);
+
+  _orchestratorOverlayTimer = setInterval(async () => {
+    secondsLeft -= 1;
+    const progress = Math.min(95, 10 + (10 - secondsLeft) * 8.5);
+    if (barEl) barEl.style.width = `${progress}%`;
+    if (timerEl) timerEl.textContent = `${Math.max(0, secondsLeft)}s`;
+
+    if (secondsLeft <= 6) {
+      try {
+        const ping = await fetch('/api/orchestrator/status', { cache: 'no-store' });
+        if (ping.ok) {
+          clearInterval(_orchestratorOverlayTimer);
+          _orchestratorOverlayTimer = null;
+          if (barEl) barEl.style.width = '100%';
+          if (titleEl) titleEl.textContent = typeof t === 'function' ? t('orchestrator_success_title') : 'سرویس‌ها فعال و آماده شدند';
+          if (statusEl) statusEl.textContent = typeof t === 'function' ? t('orchestrator_success_status') : 'تمام سرویس‌های هرمس با موفقیت راه‌اندازی مجدد شدند.';
+          setTimeout(() => {
+            closeOrchestratorModal();
+            loadOrchestratorStatus(true);
+            showToast('تمامی سرویس‌های هرمس با موفقیت راه‌اندازی مجدد شدند.');
+          }, 1200);
+          return;
+        }
+      } catch (_) {}
+    }
+
+    if (secondsLeft <= 0) {
+      clearInterval(_orchestratorOverlayTimer);
+      _orchestratorOverlayTimer = null;
+      if (barEl) barEl.style.width = '100%';
+      if (cancelBtn) cancelBtn.style.display = 'inline-block';
+      setTimeout(() => {
+        window.location.reload();
+      }, 1500);
+    }
+  }, 1000);
+}
+
+async function triggerRebootServer() {
+  const confirmMsg = typeof t === 'function'
+    ? t('orchestrator_reboot_confirm_message')
+    : 'آیا از ری‌استارت کامل هاست / سرور اطمینان دارید؟ تمام سرویس‌های هرمس (وب‌یوآی، ۹روتر، وب‌پنل، گیت‌وی و پروکسی) برای اجرای خودکار پس از بالا آمدن سرور پیکربندی و تضمین شده‌اند و صفحه به محض بالا آمدن سرور به صورت خودکار متصل می‌شود.';
+
+  const ok = await showConfirmDialog({
+    title: (typeof t === 'function' ? t('orchestrator_reboot_confirm_title') : 'ری‌استارت کامل سرور با تضمین بازیابی خودکار'),
+    message: confirmMsg,
+    confirmLabel: (typeof t === 'function' ? t('orchestrator_reboot_confirm_btn') : 'تایید و ری‌استارت سرور'),
+    danger: true
+  });
+  if (!ok) return;
+
+  const overlay = $('orchestratorOverlay');
+  const titleEl = $('orchestratorModalTitle');
+  const statusEl = $('orchestratorModalStatus');
+  const barEl = $('orchestratorProgressBar');
+  const timerEl = $('orchestratorTimer');
+  const cancelBtn = $('btnCancelOrchestratorModal');
+
+  if (overlay) overlay.style.display = 'flex';
+  if (cancelBtn) cancelBtn.style.display = 'none';
+  if (titleEl) titleEl.textContent = typeof t === 'function' ? t('orchestrator_rebooting_title') : 'سرور در حال ری‌استارت است...';
+  if (statusEl) statusEl.textContent = typeof t === 'function' ? t('orchestrator_rebooting_status') : 'دستور ری‌استارت هاست صادر شد. سیستم به محض روشن شدن مجدد سرور و فعال‌سازی سرویس‌ها، به صورت خودکار متصل خواهد شد...';
+  if (barEl) barEl.style.width = '5%';
+
+  try {
+    await api('/api/orchestrator/reboot', { method: 'POST' });
+  } catch (err) {
+    // Process exits during reboot
+  }
+
+  let secondsLeft = 45;
+  if (timerEl) timerEl.textContent = `${secondsLeft}s`;
+  if (_orchestratorOverlayTimer) clearInterval(_orchestratorOverlayTimer);
+
+  _orchestratorOverlayTimer = setInterval(async () => {
+    secondsLeft -= 1;
+    const progress = Math.min(95, 5 + ((45 - secondsLeft) / 45) * 90);
+    if (barEl) barEl.style.width = `${progress}%`;
+    if (timerEl) timerEl.textContent = `${Math.max(0, secondsLeft)}s`;
+
+    if (secondsLeft <= 30) {
+      try {
+        const ping = await fetch('/health', { cache: 'no-store' });
+        if (ping.ok) {
+          clearInterval(_orchestratorOverlayTimer);
+          _orchestratorOverlayTimer = null;
+          if (barEl) barEl.style.width = '100%';
+          if (titleEl) titleEl.textContent = 'سرور با موفقیت بالا آمد!';
+          if (statusEl) statusEl.textContent = 'سرویس‌ها فعال شدند. در حال بارگذاری مجدد صفحه...';
+          setTimeout(() => {
+            window.location.reload();
+          }, 1500);
+          return;
+        }
+      } catch (_) {}
+    }
+
+    if (secondsLeft <= 0) {
+      clearInterval(_orchestratorOverlayTimer);
+      _orchestratorOverlayTimer = null;
+      if (cancelBtn) cancelBtn.style.display = 'inline-block';
+      if (statusEl) statusEl.textContent = 'در حال تلاش مجدد برای برقراری ارتباط... لطفاً در صورت بالا آمدن سرور صفحه را رفرش کنید.';
+      setTimeout(() => window.location.reload(), 5000);
+    }
+  }, 1000);
 }
 
 /* ── Image lightbox — click any .msg-media-img to enlarge ─────────────────── */
@@ -9147,6 +9401,40 @@ function _stripVisibleAssistantEchoFromThinking(thinkingText, ...visibleTexts){
   return clean;
 }
 
+window.copyCodeBlock = function(btn) {
+  try {
+    let pre = btn.closest('.pre-header')?.nextElementSibling;
+    if (!pre || pre.tagName !== 'PRE') {
+      pre = btn.closest('.code-tree-wrap')?.querySelector('pre') || btn.closest('.csv-table-wrap') || btn.closest('pre');
+    }
+    const code = pre?.querySelector('code') || pre;
+    const text = code ? (code.innerText || code.textContent) : '';
+    if (!text) return;
+    navigator.clipboard.writeText(text.replace(/\r\n/g, '\n')).then(() => {
+      const span = btn.querySelector('span');
+      const old = span ? span.textContent : '';
+      if (span) span.textContent = 'کپی شد!';
+      btn.classList.add('copied');
+      setTimeout(() => {
+        if (span) span.textContent = old || 'کپی';
+        btn.classList.remove('copied');
+      }, 2000);
+    });
+  } catch(e) {
+    console.error(e);
+  }
+};
+
+function _renderCodeSpan(c){
+  const clean = String(c || '').trim();
+  const isFilePath = /^(?:\/Users\/|\/root\/|~\/|\.\/|workspace\/|\.hermes\/)[\w.-]+(?:\/[\w.-]+)*\.[a-zA-Z0-9]{2,8}$/.test(clean);
+  if (isFilePath) {
+    const enc = encodeURIComponent(clean);
+    return `<span class="file-ref-badge"><code>${esc(clean)}</code><a href="/api/files/preview?path=${enc}" target="_blank" class="file-ref-btn preview-btn" title="مشاهده فایل"><svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg></a><a href="/api/files/download?path=${enc}" download class="file-ref-btn download-btn" title="دانلود فایل"><svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg></a></span>`;
+  }
+  return `<code>${esc(c)}</code>`;
+}
+
 function renderMd(raw){
   let s=(raw||'').replace(/\r\n/g,'\n').replace(/\r/g,'\n');
   // ── Entity decode: must run FIRST so &gt; lines become > for the blockquote
@@ -9266,7 +9554,9 @@ function renderMd(raw){
       const id='mermaid-'+Math.random().toString(36).slice(2,10);
       _preBlock_stash.push(`<div class="mermaid-block" data-mermaid-id="${id}">${esc(code.trim())}</div>`);
     } else {
-      const h=lang?`<div class="pre-header">${esc(lang)}</div>`:'';
+      const langLabel=esc(lang||'code');
+      const copyBtn=`<button type="button" class="copy-code-btn" onclick="copyCodeBlock(this)" title="کپی کردن کد"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg><span>کپی</span></button>`;
+      const h=`<div class="pre-header"><span class="pre-lang-label">${langLabel}</span>${copyBtn}</div>`;
       const langAttr=lang?` class="language-${esc(lang)}"`:'';
       const preClass=/^(md|markdown|mdx)$/.test(lang)?' class="md-source-block"':'';
       // For diff/patch blocks, wrap each line in a colored span
@@ -9302,7 +9592,7 @@ function renderMd(raw){
     }
     return lead+'\x00P'+(_preBlock_stash.length-1)+'\x00';
   });
-  s=s.replace(/`([^`\n]+)`/g,(_,c)=>{fence_stash.push('<code>'+esc(c)+'</code>');return '\x00F'+(fence_stash.length-1)+'\x00';});
+  s=s.replace(/`([^`\n]+)`/g,(_,c)=>{fence_stash.push(_renderCodeSpan(c));return '\x00F'+(fence_stash.length-1)+'\x00';});
   // Math stash: protect $$..$$ and $..$ from markdown processing
   // Runs AFTER fence_stash so backtick code spans protect their dollar-sign contents
   const math_stash=[];
@@ -9506,7 +9796,7 @@ function renderMd(raw){
   function inlineMd(t){
     // Stash backtick code spans first so bold/italic never esc() their content
     const _code_stash=[];
-    t=t.replace(/`([^`\n]+)`/g,(_,x)=>{_code_stash.push(`<code>${esc(x)}</code>`);return `\x00C${_code_stash.length-1}\x00`;});
+    t=t.replace(/`([^`\n]+)`/g,(_,x)=>{_code_stash.push(_renderCodeSpan(x));return `\x00C${_code_stash.length-1}\x00`;});
     t=t.replace(/\*\*\*(.+?)\*\*\*/g,(_,x)=>`<strong><em>${esc(x)}</em></strong>`);
     t=t.replace(/\*\*(.+?)\*\*/g,(_,x)=>`<strong>${esc(x)}</strong>`);
     t=t.replace(/\*([^\s*](?:[^*\n]*?[^\s*])?)\*/g,(_,x)=>`<em>${esc(x)}</em>`);
@@ -9789,6 +10079,13 @@ function renderMd(raw){
   function _markdownAnchor(label,rawUrl){
     const href=_markdownHref(rawUrl);
     const internal=/^session:\/\//i.test(String(rawUrl||'')) || _isInternalSessionHref(href);
+    const isFile=/^file:\/\//i.test(String(rawUrl||'')) || /^api\/(media|files)/i.test(href);
+    if(isFile){
+      const rawPath=String(rawUrl||'').replace(/^file:\/\//i,'');
+      const dlHref='/api/files/download?path='+encodeURIComponent(rawPath);
+      const prevHref='/api/files/preview?path='+encodeURIComponent(rawPath);
+      return `<span class="file-chip"><a class="file-chip-name" href="${prevHref}" target="_blank" rel="noopener">${_markdownLabelHtml(label)}</a><a class="file-chip-action" href="${dlHref}" download title="دانلود"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg></a></span>`;
+    }
     return `<a${internal?' class="session-link"':''} href="${href}"${internal?'':' target="_blank" rel="noopener"'}>${_markdownLabelHtml(label)}</a>`;
   }
   function _isSafeUrl(v, img){
@@ -10172,7 +10469,30 @@ function updateSendBtn(){
   } else if(action==='disabled'){
     btn.classList.remove('visible');
   }
+  const btnCont=$('btnContinue');
+  if(btnCont){
+    btnCont.disabled=!!S.busy;
+  }
 }
+
+async function sendContinue(){
+  if(S.busy){
+    if(typeof showToast==='function') showToast(typeof t==='function'&&t('agent_busy')||'هرمس در حال حاضر مشغول کار است...',2000);
+    return;
+  }
+  const input=$('msg');
+  const existing=input?input.value.trim():'';
+  const continuePrompt=existing?`ادامه بده: ${existing}`:'ادامه بده';
+  if(input){
+    input.value=continuePrompt;
+    if(typeof autoResize==='function') autoResize();
+    if(typeof updateSendBtn==='function') updateSendBtn();
+  }
+  if(typeof send==='function'){
+    await send();
+  }
+}
+window.sendContinue=sendContinue;
 
 async function handleComposerPrimaryAction(){
   if(window._micActive){

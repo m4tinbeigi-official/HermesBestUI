@@ -148,6 +148,21 @@
       <line x1="5" y1="12" x2="19" y2="12"/>
     </svg>
   </button>
+  <a class="app-titlebar-btn has-tooltip has-tooltip--bottom" id="btnTitlebarWebPanel" href="http://127.0.0.1:7425" target="_blank" rel="noopener noreferrer" data-tooltip="هرمس وب‌پنل (پورت ۷۴۲۵)" data-i18n-title="nav_web_panel_title" aria-label="Hermes Web Panel">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" width="14" height="14">
+      <rect x="2" y="3" width="20" height="14" rx="2"/>
+      <line x1="8" y1="21" x2="16" y2="21"/>
+      <line x1="12" y1="17" x2="12" y2="21"/>
+    </svg>
+    <span class="app-titlebar-btn-label" data-i18n="nav_web_panel">وب‌پنل</span>
+  </a>
+  <button class="app-titlebar-btn has-tooltip has-tooltip--bottom" id="btnTitlebarOrchestrator" onclick="openServicesOrchestratorModal()" type="button" data-tooltip="بازیابی و ری‌استارت سرویس‌ها" data-i18n-title="nav_orchestrator_title" aria-label="Restart & Recover Services">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" width="14" height="14">
+      <path d="M21.5 2v6h-6"/>
+      <path d="M21.34 15.57a10 10 0 1 1-.57-8.38l5.67-5.67"/>
+    </svg>
+    <span class="app-titlebar-btn-label" data-i18n="nav_orchestrator">سرویس‌ها</span>
+  </button>
   <button class="app-titlebar-reload" id="btnReload" onclick="window.location.reload()" type="button" aria-label="Reload" title="Reload page">
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" width="16" height="16">
       <polyline points="23 4 23 10 17 10"/>
@@ -168,6 +183,8 @@
     <button class="rail-btn nav-tab has-tooltip" data-panel="insights" onclick="switchPanel('insights',{fromRailClick:true})" data-tooltip="Insights" data-i18n-title="tab_insights" aria-label="Insights"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M18 20V10"/><path d="M12 20V4"/><path d="M6 20v-6"/></svg></button>
     <button class="rail-btn nav-tab dashboard-link has-tooltip" id="dashboardRailBtn" data-dashboard-link style="display:none" onclick="openHermesDashboard(event)" data-tooltip="Hermes Dashboard" data-i18n-title="tab_dashboard" aria-label="Hermes Dashboard"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h18"/><path d="M9 21V9"/></svg><span class="dashboard-external-badge" aria-hidden="true"></span></button>
     <button class="rail-btn nav-tab has-tooltip" data-panel="logs" onclick="switchPanel('logs',{fromRailClick:true})" data-tooltip="Logs" data-i18n-title="tab_logs" aria-label="Logs"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6"/><path d="M8 13h8"/><path d="M8 17h8"/><path d="M8 9h2"/></svg></button>
+    <button class="rail-btn nav-tab has-tooltip" data-panel="gallery" onclick="switchPanel('gallery',{fromRailClick:true})" data-tooltip="Media Gallery" data-i18n-title="tab_gallery" aria-label="Media Gallery"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg></button>
+    <a class="rail-btn has-tooltip" id="railBtnWebPanel" href="http://127.0.0.1:7425" target="_blank" rel="noopener noreferrer" data-tooltip="هرمس وب‌پنل (پورت ۷۴۲۵)" data-i18n-title="nav_web_panel_title" aria-label="Hermes Web Panel"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="2" y="3" width="20" height="14" rx="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/></svg></a>
     <div class="rail-spacer"></div>
     <button class="rail-btn nav-tab has-tooltip" data-panel="settings" onclick="switchPanel('settings',{fromRailClick:true})" data-tooltip="Settings" data-i18n-title="tab_settings" aria-label="Settings"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg><span class="auth-warning-badge" id="authWarningBadgeDesktop" style="display:none;position:absolute;top:4px;right:4px;width:8px;height:8px;border-radius:50%;background:#e05"></span></button>
   </nav>
@@ -187,6 +204,7 @@
       <button class="nav-tab has-tooltip has-tooltip--bottom" data-panel="insights" data-label="Insights" onclick="switchPanel('insights',{fromRailClick:true})" data-tooltip="Insights" data-i18n-title="tab_insights"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M18 20V10"/><path d="M12 20V4"/><path d="M6 20v-6"/></svg></button>
       <button class="nav-tab dashboard-link has-tooltip has-tooltip--bottom" id="dashboardMobileBtn" data-dashboard-link data-label="Dashboard" style="display:none" onclick="openHermesDashboard(event)" data-tooltip="Hermes Dashboard" data-i18n-title="tab_dashboard"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h18"/><path d="M9 21V9"/></svg><span class="dashboard-external-badge" aria-hidden="true"></span></button>
       <button class="nav-tab has-tooltip has-tooltip--bottom" data-panel="logs" data-label="Logs" onclick="switchPanel('logs',{fromRailClick:true})" data-tooltip="Logs" data-i18n-title="tab_logs"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6"/><path d="M8 13h8"/><path d="M8 17h8"/><path d="M8 9h2"/></svg></button>
+      <button class="nav-tab has-tooltip has-tooltip--bottom" data-panel="gallery" data-label="گالری" onclick="switchPanel('gallery',{fromRailClick:true})" data-tooltip="Media Gallery" data-i18n-title="tab_gallery"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg></button>
       <!-- Settings button mirrored here for mobile (rail is desktop-only via @media >=768px). Keep in sync with rail entry. -->
       <button class="nav-tab has-tooltip has-tooltip--bottom" data-panel="settings" onclick="switchPanel('settings',{fromRailClick:true})" data-tooltip="Settings" data-i18n-title="tab_settings" style="position:relative"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg><span class="auth-warning-badge" id="authWarningBadgeMobile" style="display:none;position:absolute;top:4px;right:4px;width:8px;height:8px;border-radius:50%;background:#e05"></span></button>
     </div>
@@ -202,6 +220,9 @@
         <div class="panel-head-actions">
           <button class="panel-head-btn has-tooltip has-tooltip--bottom-right" id="btnNewChat" data-tooltip="New conversation (Cmd+K)" data-i18n-title="new_conversation" aria-label="New conversation">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+          </button>
+          <button class="panel-head-btn sidebar-collapse-btn has-tooltip has-tooltip--bottom-right" id="btnCollapseSidebar" type="button" onclick="toggleSidebar(true)" data-tooltip="Collapse sidebar (Cmd+B)" data-i18n-title="collapse_sidebar" aria-label="Collapse sidebar" data-i18n-aria-label="collapse_sidebar">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="15 18 9 12 15 6"/></svg>
           </button>
         </div>
       </div>
@@ -764,6 +785,10 @@
               </div>
             </div>
             <span class="bg-badge" id="bgBadge" style="display:none" title="Background tasks running">0</span>
+            <button class="continue-btn has-tooltip has-tooltip--left" id="btnContinue" type="button" onclick="sendContinue()" data-tooltip="ادامه بده" data-i18n-title="composer_continue" data-i18n-aria-label="composer_continue" aria-label="ادامه بده">
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polygon points="5 4 15 12 5 20 5 4" fill="currentColor"/><line x1="19" y1="5" x2="19" y2="19"/></svg>
+              <span class="continue-btn-label" data-i18n="composer_continue">ادامه بده</span>
+            </button>
             <button class="send-btn has-tooltip has-tooltip--left" id="btnSend" data-tooltip="Send message" data-i18n-title="composer_send" data-i18n-aria-label="composer_send" disabled>
               <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="19" x2="12" y2="5"/><polyline points="5 12 12 5 19 12"/></svg>
             </button>
@@ -965,6 +990,30 @@
         <div class="main-view-content logs-content">
           <div class="logs-output" id="logsOutput"><div class="logs-empty" data-i18n="logs_empty">No log lines yet.</div></div>
         </div>
+      </div>
+    </div>
+    <div id="mainGallery" class="main-view">
+      <div class="main-view-header">
+        <div>
+          <div class="main-view-title" data-i18n="gallery_title">گالری رسانه هرمس</div>
+          <div class="logs-status" id="galleryItemCount">۰ فایل</div>
+        </div>
+        <div class="gallery-toolbar" style="display:flex;gap:10px;align-items:center;flex-wrap:wrap">
+          <div class="gallery-filters" style="display:flex;gap:6px">
+            <button type="button" class="gallery-filter-btn active" data-filter="all" onclick="setGalleryFilter('all')">همه</button>
+            <button type="button" class="gallery-filter-btn" data-filter="image" onclick="setGalleryFilter('image')">تصاویر</button>
+            <button type="button" class="gallery-filter-btn" data-filter="audio" onclick="setGalleryFilter('audio')">صداها</button>
+            <button type="button" class="gallery-filter-btn" data-filter="video" onclick="setGalleryFilter('video')">ویدیوها</button>
+            <button type="button" class="gallery-filter-btn" data-filter="document" onclick="setGalleryFilter('document')">اسناد</button>
+          </div>
+          <button type="button" class="sm-btn" onclick="loadGalleryPanel(true)" title="بروزرسانی">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21.5 2v6h-6M21.34 15.57a10 10 0 1 1-.57-8.38l5.67-5.67"/></svg>
+            <span>بروزرسانی</span>
+          </button>
+        </div>
+      </div>
+      <div class="main-view-body" style="padding:16px;overflow-y:auto;display:flex;flex-direction:column;flex:1">
+        <div id="galleryItemsGrid" class="gallery-grid"></div>
       </div>
     </div>
     <div id="mainPlugin" class="main-view">
@@ -1662,6 +1711,63 @@
             </div>
             <button class="sm-btn" id="btnDisableAuth" onclick="disableAuth()" style="margin-top:6px;width:100%;padding:8px;font-weight:600;color:#e8a030;border-color:rgba(232,160,48,.3);display:none" data-i18n="disable_auth">Disable Auth</button>
             <button class="sm-btn" id="btnSignOut" onclick="signOut()" style="margin-top:6px;width:100%;padding:8px;font-weight:600;color:var(--accent);border-color:rgba(233,69,96,.3);display:none" data-i18n="sign_out">Sign Out</button>
+            <!-- Hermes Services Orchestrator & Recovery Hub -->
+            <div class="settings-field orchestrator-hub-card" id="orchestratorHubCard" style="margin-top:18px;padding-top:16px;border-top:1px solid var(--border)">
+              <div class="orchestrator-head">
+                <div>
+                  <div class="orchestrator-title" data-i18n="orchestrator_title">مدیریت، بازیابی و ری‌استارت سرویس‌های هرمس</div>
+                  <div class="orchestrator-desc" data-i18n="orchestrator_desc">نظارت بلادرنگ بر وضعیت سرویس‌ها، ری‌استارت هوشمند با پاک‌سازی کش و ری‌استارت سرور با تضمین اجرای خودکار.</div>
+                </div>
+                <div class="orchestrator-autostart-badge" id="orchestratorAutostartBadge">
+                  <span class="orchestrator-dot online"></span>
+                  <span id="orchestratorAutostartText" data-i18n="orchestrator_autostart_guaranteed">بوت خودکار: تضمین‌شده</span>
+                </div>
+              </div>
+
+              <!-- Services Status Grid -->
+              <div class="orchestrator-services-grid" id="orchestratorServicesGrid">
+                <div class="orchestrator-loading" style="grid-column: 1/-1; padding: 12px; font-size: 12px; color: var(--muted); text-align: center;">
+                  <span class="spinner-xs" style="display:inline-block; vertical-align:middle; margin-inline-end:6px;"></span>
+                  <span data-i18n="orchestrator_loading_status">در حال بررسی وضعیت سرویس‌ها...</span>
+                </div>
+              </div>
+
+              <!-- Action Buttons -->
+              <div class="orchestrator-actions-row">
+                <button class="sm-btn orchestrator-btn-primary" id="btnRestartServices" type="button" onclick="triggerRestartAllServices()">
+                  <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21.5 2v6h-6"/><path d="M21.34 15.57a10 10 0 1 1-.57-8.38l5.67-5.67"/></svg>
+                  <span data-i18n="orchestrator_btn_restart_services">ری‌استارت کل سرویس‌های هرمس</span>
+                </button>
+                <a class="sm-btn orchestrator-btn-panel" id="btnOpenWebPanelLink" href="http://127.0.0.1:7425" target="_blank" rel="noopener noreferrer">
+                  <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="2" y="3" width="20" height="14" rx="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/></svg>
+                  <span data-i18n="orchestrator_btn_open_panel">ورود به وب‌پنل هرمس (۷۴۲۵)</span>
+                </a>
+                <button class="sm-btn orchestrator-btn-danger" id="btnRebootServer" type="button" onclick="triggerRebootServer()">
+                  <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M18.36 6.64a9 9 0 1 1-12.73 0"/><line x1="12" y1="2" x2="12" y2="12"/></svg>
+                  <span data-i18n="orchestrator_btn_reboot_server">ری‌استارت سرور (با بازیابی خودکار)</span>
+                </button>
+              </div>
+
+              <!-- Settings & Custom URL -->
+              <div class="orchestrator-config-box">
+                <div class="orchestrator-config-title" data-i18n="orchestrator_config_title">تنظیمات پیشرفته اورکستراتور و وب‌پنل</div>
+                <div style="display:flex;gap:8px;margin-top:8px;align-items:center;">
+                  <input type="text" id="settingsWebPanelUrl" placeholder="http://127.0.0.1:7425" style="flex:1;padding:7px 10px;background:var(--code-bg);color:var(--text);border:1px solid var(--border2);border-radius:6px;font-size:12px;font-family:var(--font-mono)">
+                  <button class="sm-btn" type="button" onclick="saveWebPanelUrlSettings()" style="padding:7px 14px;white-space:nowrap" data-i18n="settings_save_btn">ذخیره آدرس</button>
+                </div>
+                <div class="orchestrator-checkboxes">
+                  <label class="orchestrator-checkbox-label">
+                    <input type="checkbox" id="chkClearQuotaCache" checked>
+                    <span data-i18n="orchestrator_chk_quota">پاک‌سازی کش سهمیه و قفل‌های ۹روتر در ری‌استارت</span>
+                  </label>
+                  <label class="orchestrator-checkbox-label">
+                    <input type="checkbox" id="chkIncludeWebUI" checked>
+                    <span data-i18n="orchestrator_chk_webui">راه‌اندازی مجدد خودکار وب‌یوآی همراه با سایر سرویس‌ها</span>
+                  </label>
+                </div>
+              </div>
+            </div>
+
             <div class="settings-field" id="shutdownServerBlock" style="margin-top:18px;padding-top:16px;border-top:1px solid var(--border)">
               <label data-i18n="settings_label_shutdown">توقف سرور HermesBestUI</label>
               <div style="font-size:11px;color:var(--muted);margin-bottom:8px"><span data-i18n="settings_desc_shutdown_before_cmd">Gracefully stops the local WebUI server. Useful if you launched via </span><code>./ctl.sh start</code><span data-i18n="settings_desc_shutdown_between_cmds"> and want to stop without switching to a terminal. You'll need to relaunch the server (</span><code>./ctl.sh start</code><span data-i18n="settings_desc_shutdown_after_cmd"> or the native app) before the WebUI is reachable again.</span></div>
@@ -1752,6 +1858,9 @@
   </main>
   <button class="workspace-panel-edge-toggle has-tooltip has-tooltip--left" id="btnWorkspacePanelEdgeToggle" type="button" onclick="toggleWorkspacePanel(true)" data-tooltip="Show workspace panel" aria-label="Show workspace panel" aria-expanded="false">
     <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="15 18 9 12 15 6"/></svg>
+  </button>
+  <button class="sidebar-edge-toggle has-tooltip has-tooltip--right" id="btnSidebarEdgeToggle" type="button" onclick="toggleSidebar(false)" data-tooltip="Show sidebar (Cmd+B)" data-i18n-title="show_sidebar" aria-label="Show sidebar" aria-expanded="false">
+    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="9 18 15 12 9 6"/></svg>
   </button>
   <aside class="rightpanel">
     <div class="resize-handle" id="rightpanelResize"></div>
@@ -1859,6 +1968,7 @@
 <script src="static/messages.js?v=__WEBUI_VERSION__" defer></script>
 <script src="static/extension_settings.js?v=__WEBUI_VERSION__" defer></script>
 <script src="static/nine_router.js?v=__WEBUI_VERSION__" defer></script>
+<script src="static/gallery.js?v=__WEBUI_VERSION__" defer></script>
 <script src="static/panels.js?v=__WEBUI_VERSION__" defer></script>
 <script src="static/onboarding.js?v=__WEBUI_VERSION__" defer></script>
 <script src="static/boot.js?v=__WEBUI_VERSION__" defer></script>
@@ -1990,5 +2100,40 @@
   <div id="outlinePanel"></div>
 </div>
 <div class="profile-dropdown" id="profileDropdown"></div>
+
+<!-- Services Orchestrator Recovery & Polling Overlay -->
+<div class="orchestrator-overlay" id="orchestratorOverlay" style="display:none" role="dialog" aria-modal="true" aria-labelledby="orchestratorModalTitle">
+  <div class="orchestrator-modal">
+    <div class="orchestrator-radar-scanner">
+      <div class="radar-circle circle-1"></div>
+      <div class="radar-circle circle-2"></div>
+      <div class="radar-sweep"></div>
+      <svg class="radar-center-icon" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21.5 2v6h-6"/><path d="M21.34 15.57a10 10 0 1 1-.57-8.38l5.67-5.67"/></svg>
+    </div>
+    <div class="orchestrator-modal-title" id="orchestratorModalTitle">در حال راه‌اندازی مجدد سرویس‌ها...</div>
+    <div class="orchestrator-modal-status" id="orchestratorModalStatus">در حال بستن و راه‌اندازی تمیز سرویس‌ها؛ لطفاً شکیبا باشید.</div>
+    <div class="orchestrator-progress-bar-wrap">
+      <div class="orchestrator-progress-bar" id="orchestratorProgressBar"></div>
+    </div>
+    <div class="orchestrator-modal-footer">
+      <span class="orchestrator-timer" id="orchestratorTimer">۱۰ ثانیه</span>
+      <button class="sm-btn" id="btnCancelOrchestratorModal" type="button" onclick="closeOrchestratorModal()" style="display:none">بستن پنجره</button>
+    </div>
+  </div>
+</div>
+
+<!-- File Preview Modal -->
+<div id="filePreviewModal" class="file-preview-modal" style="display:none" onclick="if(event.target===this)closeFilePreviewModal()">
+  <div class="file-preview-modal-dialog">
+    <div class="file-preview-modal-head">
+      <span id="filePreviewModalTitle">پیش‌نمایش فایل</span>
+      <div style="display:flex;gap:8px;align-items:center">
+        <a id="filePreviewModalDownload" class="sm-btn" download href="#">دانلود</a>
+        <button type="button" class="sm-btn" onclick="closeFilePreviewModal()">بستن</button>
+      </div>
+    </div>
+    <div class="file-preview-modal-body" id="filePreviewModalBody"></div>
+  </div>
+</div>
 </body>
 </html>
