@@ -8509,6 +8509,8 @@ html[data-conversation-outline="enabled"] #outlineToggleBtn:not([hidden]){displa
   flex-direction: column;
   gap: 6px;
   font-family: inherit;
+  direction: rtl;
+  text-align: start;
   z-index: 20;
 }
 

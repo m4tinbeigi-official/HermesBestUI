@@ -44,7 +44,12 @@ function _getActiveProjectObj() {
 }
 
 function _getProjectSessions(projectId) {
-  const sessions = (typeof S !== 'undefined' && Array.isArray(S.sessions)) ? S.sessions : [];
+  let sessions = (typeof S !== 'undefined' && Array.isArray(S.sessions)) ? S.sessions.slice() : [];
+  if (typeof S !== 'undefined' && S.session && S.session.session_id) {
+    if (!sessions.some(s => s.session_id === S.session.session_id)) {
+      sessions.unshift(S.session);
+    }
+  }
   if (!projectId) {
     return sessions;
   }
@@ -109,7 +114,13 @@ function renderProjectChatsList() {
   const titleText = document.getElementById('chatProjectPanelTitleText');
   const subText = document.getElementById('chatProjectPanelSub');
   if (titleText) {
-    titleText.textContent = currentProj ? `گفتگوهای پروژه ${currentProj.name}` : 'تمام گفتگوهای فعال';
+    if (currentProj) {
+      const pName = (currentProj.name || 'پروژه').trim();
+      const prefix = pName.startsWith('پروژه') ? 'گفتگوهای ' : 'گفتگوهای پروژه ';
+      titleText.textContent = `${prefix}${pName}`;
+    } else {
+      titleText.textContent = 'تمام گفتگوهای فعال';
+    }
   }
   if (subText) {
     subText.textContent = `شامل ${sessions.length} چت؛ با کلیک روی هر چت پیام‌های آن باز و بسته می‌شوند`;
