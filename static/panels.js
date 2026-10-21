@@ -43,9 +43,9 @@ let _logsSeverityFilter = 'all';
 const APP_TITLEBAR_KEYS = {
   chat: 'tab_chat', tasks: 'tab_tasks', skills: 'tab_skills',
   memory: 'tab_memory', workspaces: 'tab_workspaces',
-  profiles: 'tab_profiles', todos: 'tab_todos', insights: 'tab_insights', logs: 'tab_logs', settings: 'tab_settings',
+  profiles: 'tab_profiles', todos: 'tab_todos', insights: 'tab_insights', logs: 'tab_logs', settings: 'tab_settings', gallery: 'tab_gallery',
 };
-const MAIN_VIEW_PANELS = ['settings','skills','memory','tasks','kanban','workspaces','profiles','insights','logs','plugin'];
+const MAIN_VIEW_PANELS = ['settings','skills','memory','tasks','kanban','workspaces','profiles','insights','logs','plugin','gallery'];
 const MAIN_VIEW_SIDEBAR_PANEL_FALLBACKS = { plugin: 'settings' };
 
 /**
@@ -304,6 +304,20 @@ function _beginSettingsPanelSession() {
     });
   }
   _resetSettingsPanelState();
+  if (typeof api === 'function') {
+    api('/api/9router/status').then(st => {
+      const b = $('nineRouterNavBadge');
+      if (b) {
+        if (st && st.running) {
+          b.style.display = 'inline-block';
+          b.textContent = 'فعال';
+          b.style.background = '#10b981';
+        } else {
+          b.style.display = 'none';
+        }
+      }
+    }).catch(() => {});
+  }
 }
 
 function _beforePanelSwitch(nextPanel) {
@@ -473,6 +487,7 @@ async function switchPanel(name, opts = {}) {
   if (nextPanel === 'todos') loadTodos();
   if (nextPanel === 'insights') await loadInsights();
   if (nextPanel === 'logs') await loadLogs();
+  if (nextPanel === 'gallery' && typeof loadGalleryPanel === 'function') await loadGalleryPanel();
   _syncLogsAutoRefresh();
   if (typeof _syncSystemHealthMonitorVisibility === 'function') _syncSystemHealthMonitorVisibility();
   if (nextPanel === 'settings') {
@@ -8559,7 +8574,7 @@ function switchSettingsSection(name,opts){
     _settingsSection = name;
     return;
   }
-  let section=(name==='appearance'||name==='preferences'||name==='providers'||name==='plugins'||name==='extensions'||name==='system'||name==='help')?name:'conversation';
+  let section=(name==='appearance'||name==='preferences'||name==='providers'||name==='ninerouter'||name==='plugins'||name==='extensions'||name==='system'||name==='help')?name:'conversation';
   // Deep-linking to the Plugins pane when the tab is hidden (no plugins
   // installed, #3457) falls back to Conversation. Resolve this BEFORE toggling
   // panes/sidebar/dropdown below so every downstream selection uses the
@@ -8571,13 +8586,13 @@ function switchSettingsSection(name,opts){
   }
   _settingsSection=section;
   _currentSettingsSection=section;
-  const map={conversation:'Conversation',appearance:'Appearance',preferences:'Preferences',providers:'Providers',plugins:'Plugins',extensions:'Extensions',system:'System',help:'Help'};
+  const map={conversation:'Conversation',appearance:'Appearance',preferences:'Preferences',providers:'Providers',ninerouter:'Ninerouter',plugins:'Plugins',extensions:'Extensions',system:'System',help:'Help'};
   // Sidebar menu items
   document.querySelectorAll('#settingsMenu .side-menu-item').forEach(it=>{
     it.classList.toggle('active', it.dataset.settingsSection===section);
   });
   // Panes in main
-  ['conversation','appearance','preferences','providers','plugins','extensions','system','help'].forEach(key=>{
+  ['conversation','appearance','preferences','providers','ninerouter','plugins','extensions','system','help'].forEach(key=>{
     const pane=$('settingsPane'+map[key]);
     if(pane) pane.classList.toggle('active', key===section);
   });
@@ -8589,6 +8604,7 @@ function switchSettingsSection(name,opts){
   // fresh fetch, which would detach the field it is about to scroll to.
   if(!(opts&&opts.skipLazyLoad)){
     if(section==='providers') loadProvidersPanel();
+    if(section==='ninerouter' && typeof loadNineRouterPanel === 'function') loadNineRouterPanel();
     if(section==='plugins') loadPluginsPanel();
     if(section==='extensions') loadExtensionsPanel();
   }

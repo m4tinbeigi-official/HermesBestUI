@@ -16252,6 +16252,17 @@ def handle_get(handler, parsed) -> bool:
         j(handler, build_system_health_payload())
         return True
 
+    if parsed.path == "/api/orchestrator/status":
+        from api.service_orchestrator import get_services_status
+        req_host = handler.headers.get("Host", "127.0.0.1") if hasattr(handler, "headers") else "127.0.0.1"
+        j(handler, get_services_status(request_host=req_host))
+        return True
+
+    if parsed.path == "/api/orchestrator/autostart/verify":
+        from api.service_orchestrator import verify_autostart_status
+        j(handler, verify_autostart_status())
+        return True
+
     if parsed.path == "/api/models":
         # Profile-scoping for non-default profiles (#3957) is handled INSIDE
         # get_available_models() — it binds the active profile's env + TLS on
@@ -16299,6 +16310,14 @@ def handle_get(handler, parsed) -> bool:
         return True
 
     # ── Providers (GET) ──
+    if parsed.path.startswith("/api/9router/"):
+        from api.ninerouter import handle_9router_get
+        return handle_9router_get(handler, parsed)
+
+    if parsed.path.startswith("/api/gallery/") or parsed.path.startswith("/api/files/"):
+        from api.media_gallery import handle_gallery_get
+        return handle_gallery_get(handler, parsed)
+
     if parsed.path == "/api/providers":
         # Apply the active per-request profile's env so provider auth probes
         # resolve against that profile's credentials, not the process-default
@@ -17542,11 +17561,59 @@ def handle_post(handler, parsed) -> bool:
             diag.finish()
         return proxy_result
 
+    if parsed.path.startswith("/api/9router/"):
+        if diag:
+            diag.stage("9router_post")
+        try:
+            from api.ninerouter import handle_9router_post
+            return handle_9router_post(handler, parsed)
+        finally:
+            if diag:
+                diag.finish()
+
     if parsed.path == "/api/shutdown":
         return _handle_shutdown(handler)
 
     if parsed.path == "/api/health/restart":
         return _handle_health_restart(handler)
+
+    if parsed.path == "/api/orchestrator/restart":
+        from api.service_orchestrator import restart_all_hermes_services
+        body_data = {}
+        try:
+            from api.helpers import read_body
+            body_data = read_body(handler) or {}
+        except Exception:
+            pass
+        res = restart_all_hermes_services(
+            clear_quota_cache=bool(body_data.get("clear_quota_cache", True)),
+            include_webui=bool(body_data.get("include_webui", True)),
+            include_9router=bool(body_data.get("include_9router", True)),
+            include_panel=bool(body_data.get("include_panel", True)),
+            include_gateway=bool(body_data.get("include_gateway", True)),
+            include_proxy=bool(body_data.get("include_proxy", True)),
+        )
+        j(handler, res, status=200 if res.get("ok") else (429 if res.get("busy") else 500))
+        return True
+
+    if parsed.path == "/api/orchestrator/reboot":
+        from api.service_orchestrator import reboot_host_server
+        res = reboot_host_server()
+        j(handler, res, status=200 if res.get("ok") else 500)
+        return True
+
+    if parsed.path == "/api/orchestrator/panel-url":
+        from api.service_orchestrator import _save_orchestrator_config
+        body_data = {}
+        try:
+            from api.helpers import read_body
+            body_data = read_body(handler) or {}
+        except Exception:
+            pass
+        url = str(body_data.get("url", "")).strip()
+        _save_orchestrator_config({"web_panel_url": url})
+        j(handler, {"ok": True, "url": url})
+        return True
 
     if parsed.path == "/api/upload":
         return handle_upload(handler)
@@ -21087,6 +21154,12 @@ def handle_delete(handler, parsed) -> bool:
         return bad(handler, str(exc), status=status)
     if not _guard_request_session_visibility(handler, parsed, body=body, method="DELETE"):
         return True
+    if parsed.path.startswith("/api/9router/"):
+        from api.ninerouter import handle_9router_delete
+        return handle_9router_delete(handler, parsed)
+    if parsed.path.startswith("/api/gallery/"):
+        from api.media_gallery import handle_gallery_delete
+        return handle_gallery_delete(handler, parsed)
     if parsed.path.startswith("/api/mcp/servers/"):
         # MCP server names are case-sensitive config keys: capture from the
         # original-case path, not the folded matching path.
@@ -21129,6 +21202,9 @@ def handle_put(handler, parsed) -> bool:
         return bad(handler, str(exc), status=status)
     if not _guard_request_session_visibility(handler, parsed, body=body, method="PUT"):
         return True
+    if parsed.path.startswith("/api/9router/"):
+        from api.ninerouter import handle_9router_put
+        return handle_9router_put(handler, parsed)
     if parsed.path.startswith("/api/mcp/servers/"):
         # MCP server names are case-sensitive config keys: capture from the
         # original-case path, not the folded matching path.
