@@ -10048,19 +10048,50 @@ function renderSessionListFromCache(){
       if(typeof console!=='undefined'&&console.warn) console.warn('hermes: date-group collapse state could not be persisted', e);
     }
   };
-  // Group sessions by date
+  // Group sessions by Project / Folder
   const groups=[];
-  let curLabel=null,curItems=[];
   if(pinned.length) groups.push({label:'\u2605 Pinned',items:pinned,isPinned:true});
-  for(const s of unpinned){
-    const ts=_sessionSortTimestampMs(s);
-    const label=_sessionTimeBucketLabel(ts, now);
-    if(label!==curLabel){
-      if(curItems.length) groups.push({label:curLabel,items:curItems});
-      curLabel=label;curItems=[s];
-    } else { curItems.push(s); }
+  if(Array.isArray(_allProjects) && _allProjects.length > 0){
+    const projectsMap = new Map();
+    _allProjects.forEach(p => {
+      projectsMap.set(p.project_id, { project: p, items: [] });
+    });
+    const unassigned = [];
+    for(const s of unpinned){
+      if(s.project_id && projectsMap.has(s.project_id)){
+        projectsMap.get(s.project_id).items.push(s);
+      } else {
+        unassigned.push(s);
+      }
+    }
+    for(const [pid, data] of projectsMap.entries()){
+      groups.push({
+        label: '📁 ' + data.project.name,
+        items: data.items,
+        project: data.project,
+        isFolder: true
+      });
+    }
+    if(unassigned.length > 0){
+      groups.push({
+        label: '📂 سایر گفتگوها',
+        items: unassigned,
+        isFolder: true,
+        isUnassigned: true
+      });
+    }
+  } else {
+    let curLabel=null,curItems=[];
+    for(const s of unpinned){
+      const ts=_sessionSortTimestampMs(s);
+      const label=_sessionTimeBucketLabel(ts, now);
+      if(label!==curLabel){
+        if(curItems.length) groups.push({label:curLabel,items:curItems});
+        curLabel=label;curItems=[s];
+      } else { curItems.push(s); }
+    }
+    if(curItems.length) groups.push({label:curLabel,items:curItems});
   }
-  if(curItems.length) groups.push({label:curLabel,items:curItems});
   const flatSessionRows=[];
   for(const g of groups){
     if(_groupCollapsed[g.label]) continue;
@@ -10125,13 +10156,44 @@ function renderSessionListFromCache(){
     const wrapper=document.createElement('div');
     wrapper.className='session-date-group';
     const hdr=document.createElement('div');
-    hdr.className='session-date-header'+(g.isPinned?' pinned':'');
+    hdr.className='session-date-header'+(g.isPinned?' pinned':'')+(g.isFolder?' folder-header':'');
     const caret=document.createElement('span');
     caret.className='session-date-caret';
     caret.textContent='\u25BE'; // down when expanded; rotated right when collapsed
     const label=document.createElement('span');
+    label.className='folder-label-title';
     label.textContent=g.label;
     hdr.appendChild(caret);hdr.appendChild(label);
+
+    if(g.isFolder){
+      const actions=document.createElement('div');
+      actions.className='folder-hdr-actions';
+      actions.style.cssText='margin-inline-start: auto; display: inline-flex; align-items: center; gap: 6px;';
+
+      const countBadge=document.createElement('span');
+      countBadge.className='folder-count-badge';
+      countBadge.textContent=String(g.items.length);
+      countBadge.style.cssText='font-size: 11px; opacity: 0.7; padding: 1px 6px; border-radius: 10px; background: var(--surface2, rgba(255,255,255,0.06)); font-family: ui-monospace, sans-serif;';
+      actions.appendChild(countBadge);
+
+      if(g.project){
+        const addBtn=document.createElement('button');
+        addBtn.type='button';
+        addBtn.className='folder-add-btn';
+        addBtn.title='گفتگوی جدید در این پوشه';
+        addBtn.setAttribute('aria-label', 'New chat in folder');
+        addBtn.innerHTML='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" width="13" height="13"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>';
+        addBtn.style.cssText='width: 22px; height: 22px; border-radius: 6px; border: 1px solid var(--border2, #333); background: var(--surface, transparent); color: inherit; cursor: pointer; display: inline-flex; align-items: center; justify-content: center; opacity: 0.8; padding: 0;';
+        addBtn.onclick=(e)=>{
+          e.stopPropagation();
+          if(typeof newSession==='function'){
+            newSession({project_id: g.project.project_id});
+          }
+        };
+        actions.appendChild(addBtn);
+      }
+      hdr.appendChild(actions);
+    }
     const body=document.createElement('div');
     body.className='session-date-body';
     const isGroupCollapsed=Boolean(_groupCollapsed[g.label]);
@@ -11784,9 +11846,9 @@ function _showProjectPicker(session, anchorEl){
       const idx=_allSessions.findIndex(s=>s&&s.session_id===session.session_id);
       if(idx>=0) _allSessions[idx].project_id=null;
       _repaintSidebarAfterSessionCompletion(session.session_id,pickerEpoch);
-      showToast('Removed from project');
+      showToast('از پوشه خارج شد');
     } catch(e) {
-      showToast('Unassign failed: '+(e.message||e));
+      showToast('خطا در خروج از پوشه: '+(e.message||e));
     }
   };
   picker.appendChild(none);
@@ -11835,8 +11897,8 @@ function _showProjectPicker(session, anchorEl){
         const idx=_allSessions.findIndex(s=>s&&s.session_id===session.session_id);
         if(idx>=0) _allSessions[idx].project_id=p.project_id;
         _repaintSidebarAfterSessionCompletion(session.session_id,pickerEpoch);
-        showToast('Moved to '+p.name);
-      }catch(e){showToast('Move failed: '+(e.message||e));}
+        showToast('به پوشه «'+p.name+'» منتقل شد');
+      }catch(e){showToast('خطا در انتقال به پوشه: '+(e.message||e));}
     };
     return item;
   };

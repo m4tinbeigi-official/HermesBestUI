@@ -8592,6 +8592,7 @@ function switchSettingsSection(name,opts){
     if(section==='plugins') loadPluginsPanel();
     if(section==='extensions') loadExtensionsPanel();
   }
+  if(typeof applyLocaleToDOM==='function') applyLocaleToDOM();
   if(opts&&opts.fromSidebarItem)_closeMobileSidebarAfterPanelSelection();
 }
 

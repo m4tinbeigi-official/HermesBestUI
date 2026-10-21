@@ -1415,7 +1415,7 @@ async function send(){
       if(_targetSid&&typeof _clearComposerDraft==='function'&&_targetSid!==(S.session&&S.session.session_id)) _clearComposerDraft(_targetSid,_text,S.pendingFiles?[...S.pendingFiles]:[]);
       S.pendingFiles=[];renderTray();
       updateQueueBadge(_targetSid);
-      showToast(`Queued: "${_text.slice(0,40)}${_text.length>40?'…':''}"`,2000);
+      showToast(`در صف ارسال: "${_text.slice(0,40)}${_text.length>40?'…':''}"`,2000);
     }
     return;
   }
@@ -1505,7 +1505,7 @@ async function send(){
           if(await cancelStream('busy-interrupt')) showToast(t('busy_interrupt_confirm'),2000);
           else showToast(t('cancel_failed'),null,'error');
         } else {
-          showToast(`Queued: "${text.slice(0,40)}${text.length>40?'…':''}"`,2000);
+          showToast(`در صف ارسال: "${text.slice(0,40)}${text.length>40?'…':''}"`,2000);
         }
       } else {
         // Default: queue mode (current behavior). Also the fallback for
@@ -1515,7 +1515,7 @@ async function send(){
         _clearComposerAfterQueuedSelectionSend(S.session&&S.session.session_id);
         S.pendingFiles=[];renderTray();
         updateQueueBadge(S.session.session_id);
-        showToast(`Queued: "${text.slice(0,40)}${text.length>40?'…':''}"`,2000);
+        showToast(`در صف ارسال: "${text.slice(0,40)}${text.length>40?'…':''}"`,2000);
       }
     }
     return;
@@ -2574,7 +2574,7 @@ function attachLiveStream(activeSid, streamId, uploaded=[], options={}){
     return out.trim();
   }
   function _liveThinkingText(){
-    return String(liveReasoningText||'').trim() || 'Thinking…';
+    return String(liveReasoningText||'').trim() || (typeof t === 'function' ? t('thinking') : 'در حال تفکر...');
   }
   function _liveThinkingPlacement(){
     const activeSeq=Number(_assistantSegmentSeq||0);
@@ -6847,7 +6847,7 @@ function attachLiveStream(activeSid, streamId, uploaded=[], options={}){
           sessionId:completedSid,
           liveDisplayText:typeof _streamDisplay==='function'?_streamDisplay():assistantText,
         });
-        sendBrowserNotification('Response complete',_completionPreview||'Task finished',{forceHidden:_wasEverBackgrounded,sid:activeSid});
+        sendBrowserNotification('پاسخ آماده شد',_completionPreview||'اجرای تسک پایان یافت',{forceHidden:_wasEverBackgrounded,sid:activeSid});
       };
       if(_shouldUseLiveProseFade()&&assistantBody){
         _cancelAnimationFramePendingStreamRender();
@@ -10077,8 +10077,8 @@ function _notifyPromptCard(kind, sid, pending){
   };
   try {
     const delivery = kind === 'clarify'
-      ? sendBrowserNotification('Clarification needed', p.question || p.description || 'Tool clarification needed', { sid, forceHidden: true })
-      : sendBrowserNotification('Approval required', p.description || p.command || 'Tool approval needed', { sid, forceHidden: true });
+      ? sendBrowserNotification('نیاز به شفاف‌سازی', p.question || p.description || 'هرمس نیاز به توضیحات دارد', { sid, forceHidden: true })
+      : sendBrowserNotification('نیاز به تایید دستور', p.description || p.command || 'برای اجرای دستور نیاز به تایید شماست', { sid, forceHidden: true });
     Promise.resolve(delivery).then(accepted => {
       if (accepted !== true) rollback();
     }, rollback);
