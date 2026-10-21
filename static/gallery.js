@@ -56,6 +56,9 @@ function renderGalleryItems() {
     return item.type === _galleryFilter;
   });
 
+  const countBadge = $('galleryItemCount');
+  if (countBadge) countBadge.textContent = `${filtered.length} فایل`;
+
   if (filtered.length === 0) {
     container.innerHTML = `
       <div class="gallery-empty-state">
@@ -99,6 +102,34 @@ function renderGalleryItems() {
           </video>
         </div>
       `;
+    } else if (item.type === 'code') {
+      previewHtml = `
+        <div class="gallery-card-thumb gallery-code-thumb" onclick="openFilePreviewModal('${encPath}', 'code')">
+          <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><polyline points="16 18 22 12 16 6"/><polyline points="8 6 2 12 8 18"/></svg>
+          <span class="gallery-ext-badge badge-code">${(item.ext || '').replace('.', '').toUpperCase()}</span>
+        </div>
+      `;
+    } else if (item.type === 'config') {
+      previewHtml = `
+        <div class="gallery-card-thumb gallery-config-thumb" onclick="openFilePreviewModal('${encPath}', 'config')">
+          <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+          <span class="gallery-ext-badge badge-config">${(item.ext || '').replace('.', '').toUpperCase()}</span>
+        </div>
+      `;
+    } else if (item.type === 'data') {
+      previewHtml = `
+        <div class="gallery-card-thumb gallery-data-thumb" onclick="openFilePreviewModal('${encPath}', 'data')">
+          <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><ellipse cx="12" cy="5" rx="9" ry="3"/><path d="M21 12c0 1.66-4 3-9 3s-9-1.34-9-3"/><path d="M3 5v14c0 1.66 4 3 9 3s9-1.34 9-3V5"/></svg>
+          <span class="gallery-ext-badge badge-data">${(item.ext || '').replace('.', '').toUpperCase()}</span>
+        </div>
+      `;
+    } else if (item.type === 'archive') {
+      previewHtml = `
+        <div class="gallery-card-thumb gallery-archive-thumb" onclick="openFilePreviewModal('${encPath}', 'archive')">
+          <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><polyline points="21 8 21 21 3 21 3 8"/><rect x="1" y="3" width="22" height="5"/><line x1="10" y1="12" x2="14" y2="12"/></svg>
+          <span class="gallery-ext-badge badge-archive">${(item.ext || '').replace('.', '').toUpperCase()}</span>
+        </div>
+      `;
     } else {
       previewHtml = `
         <div class="gallery-card-thumb gallery-doc-thumb" onclick="openFilePreviewModal('${encPath}', 'document')">
@@ -108,14 +139,16 @@ function renderGalleryItems() {
       `;
     }
 
+    const typeLabel = item.category_label || item.type || '';
+
     return `
-      <div class="gallery-card" data-path="${item.path}">
+      <div class="gallery-card" data-path="${item.path}" data-type="${item.type}">
         ${previewHtml}
         <div class="gallery-card-body">
           <div class="gallery-card-title" title="${item.name}">${item.name}</div>
           <div class="gallery-card-meta">
             <span>${_formatFileSize(item.size)}</span>
-            <span>${_formatDate(item.mtime)}</span>
+            <span class="gallery-item-type-chip">${typeLabel}</span>
           </div>
           <div class="gallery-card-actions">
             <a href="${previewUrl}" target="_blank" class="gallery-btn preview-btn" title="نمایش در تب جدید">

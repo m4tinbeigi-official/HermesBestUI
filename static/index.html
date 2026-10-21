@@ -1015,12 +1015,16 @@
           <div class="logs-status" id="galleryItemCount">۰ فایل</div>
         </div>
         <div class="gallery-toolbar" style="display:flex;gap:10px;align-items:center;flex-wrap:wrap">
-          <div class="gallery-filters" style="display:flex;gap:6px">
+          <div class="gallery-filters" style="display:flex;gap:6px;flex-wrap:wrap">
             <button type="button" class="gallery-filter-btn active" data-filter="all" onclick="setGalleryFilter('all')">همه</button>
+            <button type="button" class="gallery-filter-btn" data-filter="code" onclick="setGalleryFilter('code')">کد و اسکریپت</button>
+            <button type="button" class="gallery-filter-btn" data-filter="document" onclick="setGalleryFilter('document')">اسناد و متون</button>
+            <button type="button" class="gallery-filter-btn" data-filter="config" onclick="setGalleryFilter('config')">تنظیمات و سرویس</button>
+            <button type="button" class="gallery-filter-btn" data-filter="data" onclick="setGalleryFilter('data')">داده و لاگ</button>
             <button type="button" class="gallery-filter-btn" data-filter="image" onclick="setGalleryFilter('image')">تصاویر</button>
             <button type="button" class="gallery-filter-btn" data-filter="audio" onclick="setGalleryFilter('audio')">صداها</button>
             <button type="button" class="gallery-filter-btn" data-filter="video" onclick="setGalleryFilter('video')">ویدیوها</button>
-            <button type="button" class="gallery-filter-btn" data-filter="document" onclick="setGalleryFilter('document')">اسناد</button>
+            <button type="button" class="gallery-filter-btn" data-filter="archive" onclick="setGalleryFilter('archive')">فشرده (ZIP)</button>
           </div>
           <button type="button" class="sm-btn" onclick="loadGalleryPanel(true)" title="بروزرسانی">
             <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21.5 2v6h-6M21.34 15.57a10 10 0 1 1-.57-8.38l5.67-5.67"/></svg>
@@ -1880,8 +1884,8 @@
       </div>
     </div>
   </main>
-  <button class="workspace-panel-edge-toggle has-tooltip has-tooltip--left" id="btnWorkspacePanelEdgeToggle" type="button" onclick="toggleWorkspacePanel(true)" data-tooltip="Show workspace panel" aria-label="Show workspace panel" aria-expanded="false">
-    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="15 18 9 12 15 6"/></svg>
+  <button class="workspace-panel-edge-toggle has-tooltip has-tooltip--right" id="btnWorkspacePanelEdgeToggle" type="button" onclick="toggleWorkspacePanel(true)" data-tooltip="Show workspace panel" aria-label="Show workspace panel" aria-expanded="false">
+    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="9 18 15 12 9 6"/></svg>
   </button>
   <button class="sidebar-edge-toggle has-tooltip has-tooltip--right" id="btnSidebarEdgeToggle" type="button" onclick="toggleSidebar(false)" data-tooltip="Show sidebar (Cmd+B)" data-i18n-title="show_sidebar" aria-label="Show sidebar" aria-expanded="false">
     <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="9 18 15 12 9 6"/></svg>

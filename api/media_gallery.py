@@ -289,11 +289,32 @@ def scan_media_items() -> list[dict]:
         ".mp3": "audio", ".wav": "audio", ".ogg": "audio", ".m4a": "audio", ".aac": "audio", ".flac": "audio",
         # video
         ".mp4": "video", ".webm": "video", ".mov": "video", ".mkv": "video",
-        # docs / text / code
-        ".pdf": "document", ".csv": "document", ".json": "document", ".txt": "document",
-        ".md": "document", ".py": "document", ".sh": "document", ".yaml": "document",
-        ".yml": "document", ".html": "document", ".sql": "document", ".log": "document",
-        ".service": "document", ".conf": "document",
+        # code & scripts
+        ".py": "code", ".js": "code", ".ts": "code", ".jsx": "code", ".tsx": "code",
+        ".sh": "code", ".bash": "code", ".zsh": "code", ".html": "code", ".css": "code",
+        ".scss": "code", ".sql": "code", ".php": "code", ".rs": "code", ".go": "code",
+        # configs & services
+        ".service": "config", ".conf": "config", ".cfg": "config", ".ini": "config",
+        ".env": "config", ".yaml": "config", ".yml": "config", ".json": "config",
+        ".toml": "config", ".lock": "config", ".dockerignore": "config", ".gitignore": "config",
+        # documents & notes
+        ".md": "document", ".markdown": "document", ".txt": "document", ".pdf": "document",
+        ".doc": "document", ".docx": "document", ".rst": "document",
+        # data & logs
+        ".csv": "data", ".tsv": "data", ".log": "data", ".db": "data", ".sqlite": "data",
+        ".xlsx": "data", ".xls": "data",
+        # archives
+        ".zip": "archive", ".tar": "archive", ".gz": "archive", ".tgz": "archive",
+    }
+    category_labels = {
+        "document": "اسناد",
+        "code": "کد و اسکریپت",
+        "config": "تنظیمات و سرویس",
+        "data": "داده و لاگ",
+        "image": "تصویر",
+        "audio": "صدا",
+        "video": "ویدیو",
+        "archive": "آرشیو فشرده",
     }
     items = []
     seen = set()
@@ -314,6 +335,7 @@ def scan_media_items() -> list[dict]:
                         if str_p in seen:
                             continue
                         seen.add(str_p)
+                        item_type = media_extensions[ext]
                         try:
                             stat = full_path.stat()
                             items.append({
@@ -321,7 +343,8 @@ def scan_media_items() -> list[dict]:
                                 "path": str_p,
                                 "size": stat.st_size,
                                 "mtime": stat.st_mtime,
-                                "type": media_extensions[ext],
+                                "type": item_type,
+                                "category_label": category_labels.get(item_type, item_type),
                                 "ext": ext,
                             })
                         except Exception:
