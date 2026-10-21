@@ -28886,3 +28886,5 @@ window.getLocale = getLocale;
 window.applyLocaleToDOM = applyLocaleToDOM;
 window.t = t;
 window.LOCALES = LOCALES;
+window.HERMES_BRAND = 'HermesBestUI';
+window.HERMES_REPO = 'm4tinbeigi-official/HermesBestUI';

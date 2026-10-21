@@ -5,11 +5,14 @@
   <a href="https://devsponsors.github.io/mediakit.html"><img src="https://img.shields.io/badge/Infrastructure-DevSponsors_Cloud-ec4899?style=for-the-badge&logo=server" alt="DevSponsors Cloud"></a>
 </p>
 
-# Hermes Web UI
+# HermesBestUI
 
-[Hermes Agent](https://hermes-agent.nousresearch.com/) is a sophisticated autonomous agent that lives on your server, accessed via a terminal or messaging apps, that remembers what it learns and gets more capable the longer it runs.
+[HermesBestUI](https://github.com/m4tinbeigi-official/HermesBestUI) — رابط کاربری پیشرفته، بومی‌سازی‌شده، کاملاً فارسی و راست‌چین برای عامل هوشمند هرمس.
 
-Hermes WebUI is a lightweight, dark-themed web app interface in your browser for [Hermes Agent](https://hermes-agent.nousresearch.com/).
+- **مخزن رسمی پروژه و به‌روزرسانی:** [m4tinbeigi-official/HermesBestUI](https://github.com/m4tinbeigi-official/HermesBestUI)
+- **پشتیبانی کامل RTL و فونت وزیرمتن**
+- **پوشه‌بندی و دسته‌بندی آکاردئونی گفتگوها**
+- **مدیریت اختصاصی امنیت و رمز عبور ورود**
 Full parity with the CLI experience - everything you can do from a terminal, you can do from this UI. No build step, no framework, no bundler. Just Python and vanilla JS.
 
 Layout: three-panel. Left sidebar for sessions and navigation, center for chat,
@@ -123,9 +126,9 @@ ecosystem. See [docs/why-hermes.md](docs/why-hermes.md) for the full side-by-sid
 Run the repo bootstrap:
 
 ```bash
-git clone https://github.com/nesquena/hermes-webui.git hermes-webui
-cd hermes-webui
-python3 bootstrap.py
+git clone https://github.com/m4tinbeigi-official/HermesBestUI.git
+cd HermesBestUI
+./ctl.sh start
 ```
 
 Or keep using the shell launcher:
