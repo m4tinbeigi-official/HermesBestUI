@@ -765,6 +765,9 @@ const LOCALES = {
     settings_tab_conversation: 'Conversation',
     settings_tab_appearance: 'Appearance',
     settings_tab_preferences: 'Preferences',
+    settings_tab_ninerouter: '9Router',
+    ninerouter_section_title: '9Router Hub',
+    ninerouter_section_meta: 'Manage AI accounts (Antigravity, Claude, Codex) and outbound proxies for 9Router.',
     settings_tab_plugins: 'Plugins',
     settings_tab_extensions: 'Extensions',
     settings_extensions_gallery_tab: 'Gallery',
@@ -28034,6 +28037,9 @@ const LOCALES = {
     tab_insights: "بینش‌ها و آمار",
     tab_logs: "لاگ‌ها",
     tab_settings: "تنظیمات",
+    settings_tab_ninerouter: "۹روتر",
+    ninerouter_section_title: "مرکز مدیریت ۹روتر",
+    ninerouter_section_meta: "مدیریت اکانت‌های هوش مصنوعی (Antigravity, Claude, Codex) و پروکسی‌های ۹روتر",
     new_conversation: "گفتگوی جدید",
     scheduled_jobs: "وظایف زمان‌بندی‌شده",
     loading: "در حال بارگذاری...",
@@ -28794,6 +28800,12 @@ function setLocale(lang) {
   _locale = LOCALES[resolved];
   try { localStorage.setItem('hermes-lang', resolved); } catch (_) {}
   document.documentElement.lang = _locale._speech || resolved;
+  if (resolved === 'fa' || resolved === 'ar') {
+    document.documentElement.classList.add('chat-content-rtl');
+    try { localStorage.setItem('hermes-rtl', 'true'); } catch (_) {}
+    const rtlCb = document.getElementById('settingsRtl');
+    if (rtlCb) rtlCb.checked = true;
+  }
 }
 
 /**

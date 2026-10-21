@@ -112,8 +112,11 @@
     // RTL users don't see an LTR flash on initial load.
     (function(){
       try{
-        if(localStorage.getItem('hermes-rtl')==='true'){
+        var rtl = localStorage.getItem('hermes-rtl');
+        var lang = localStorage.getItem('hermes-lang');
+        if(rtl === 'true' || (rtl === null && (lang === 'fa' || lang === 'ar' || (navigator.language && (navigator.language.startsWith('fa') || navigator.language.startsWith('ar')))))){
           document.documentElement.classList.add('chat-content-rtl');
+          localStorage.setItem('hermes-rtl', 'true');
         }
       }catch(_){}
     })();
@@ -389,6 +392,11 @@
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 2l-2 2m-7.61 7.61a5.5 5.5 0 1 1-7.778 7.778 5.5 5.5 0 0 1 7.777-7.777zm0 0L15.5 7.5m0 0l3 3L22 7l-3-3m-3.5 3.5L19 4"/></svg>
             <span data-i18n="providers_tab_title">Providers</span>
           </button>
+          <button type="button" class="side-menu-item" data-settings-section="ninerouter" onclick="switchSettingsSection('ninerouter',{fromSidebarItem:true})">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="2" y="2" width="20" height="8" rx="2" ry="2"/><rect x="2" y="14" width="20" height="8" rx="2" ry="2"/><line x1="6" y1="6" x2="6.01" y2="6"/><line x1="6" y1="18" x2="6.01" y2="18"/></svg>
+            <span data-i18n="settings_tab_ninerouter">9Router</span>
+            <span class="badge-pill" id="nineRouterNavBadge" style="display:none;margin-inline-start:auto;font-size:10px;padding:1px 6px;border-radius:10px;background:#10b981;color:#fff">ON</span>
+          </button>
           <button type="button" class="side-menu-item" data-settings-section="plugins" onclick="switchSettingsSection('plugins',{fromSidebarItem:true})">
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 2l3 7h7l-5.5 4.3 2.1 7L12 16.2 5.4 20.3l2.1-7L2 9h7z"/></svg>
             <span data-i18n="settings_tab_plugins">Plugins</span>
@@ -623,7 +631,7 @@
           <span class="voice-mode-indicator" id="voiceModeIndicator"></span>
           <span class="voice-mode-label" id="voiceModeLabel"></span>
         </div>
-        <textarea id="msg" rows="1" enterkeyhint="enter" placeholder="Message Hermes…"></textarea>
+        <textarea id="msg" dir="auto" rows="1" enterkeyhint="enter" placeholder="Message Hermes…"></textarea>
         <div id="composerWorkspaceContext" class="sr-only"></div>
         <div class="composer-footer">
           <div class="composer-left">
@@ -1535,6 +1543,23 @@
               No configurable providers found.
             </div>
           </div>
+          <div class="settings-pane" id="settingsPaneNinerouter">
+            <div class="settings-section-head">
+              <div>
+                <div class="settings-section-title" data-i18n="ninerouter_section_title">9Router Hub</div>
+                <div class="settings-section-meta" data-i18n="ninerouter_section_meta">مدیریت اکانت‌های هوش مصنوعی (Antigravity, Claude, Codex) و پروکسی‌های ۹روتر</div>
+              </div>
+              <div id="nineRouterHeaderActions">
+                <button class="sm-btn" id="nineRouterRefreshBtn" onclick="loadNineRouterPanel(true)" type="button" title="بروزرسانی">
+                  <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21.5 2v6h-6M21.34 15.57a10 10 0 1 1-.57-8.38l5.67-5.67"/></svg>
+                  <span>بروزرسانی</span>
+                </button>
+              </div>
+            </div>
+            <div id="nineRouterContent" style="display:flex;flex-direction:column;gap:16px;margin-top:8px">
+              <!-- Rendered dynamically by static/nine_router.js -->
+            </div>
+          </div>
           <div class="settings-pane" id="settingsPanePlugins">
             <div class="settings-section-head">
               <div>
@@ -1833,6 +1858,7 @@
 <script src="static/commands.js?v=__WEBUI_VERSION__" defer></script>
 <script src="static/messages.js?v=__WEBUI_VERSION__" defer></script>
 <script src="static/extension_settings.js?v=__WEBUI_VERSION__" defer></script>
+<script src="static/nine_router.js?v=__WEBUI_VERSION__" defer></script>
 <script src="static/panels.js?v=__WEBUI_VERSION__" defer></script>
 <script src="static/onboarding.js?v=__WEBUI_VERSION__" defer></script>
 <script src="static/boot.js?v=__WEBUI_VERSION__" defer></script>

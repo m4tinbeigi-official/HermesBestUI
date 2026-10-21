@@ -9180,7 +9180,7 @@ function renderMd(raw){
       // code, headings, hr, ordered/unordered lists, nested blockquotes
       // (>>) — anything that renderMd handles at the top level.
       const rendered=renderMd(stripped);
-      _bq_stash.push('<blockquote>'+rendered+'</blockquote>');
+      _bq_stash.push('<blockquote dir="auto">'+rendered+'</blockquote>');
       // Surround the token with blank lines so the paragraph splitter
       // isolates it as its own chunk (otherwise the token gets wrapped
       // in <p>...<br> with adjacent text, producing invalid HTML).
@@ -9542,7 +9542,7 @@ function renderMd(raw){
   s=s.replace(/\*([^\s*](?:[^*\n]*?[^\s*])?)\*/g,(_,t)=>`<em>${esc(t)}</em>`);
   s=s.replace(/~~(.+?)~~/g,(_,t)=>`<del>${esc(t)}</del>`);
   s=s.replace(/\x00O(\d+)\x00/g,(_,i)=>_ob_stash[+i]);
-  s=s.replace(/^###### (.+)$/gm,(_,t)=>`<h6>${inlineMd(t)}</h6>`).replace(/^##### (.+)$/gm,(_,t)=>`<h5>${inlineMd(t)}</h5>`).replace(/^#### (.+)$/gm,(_,t)=>`<h4>${inlineMd(t)}</h4>`).replace(/^### (.+)$/gm,(_,t)=>`<h3>${inlineMd(t)}</h3>`).replace(/^## (.+)$/gm,(_,t)=>`<h2>${inlineMd(t)}</h2>`).replace(/^# (.+)$/gm,(_,t)=>`<h1>${inlineMd(t)}</h1>`);
+  s=s.replace(/^###### (.+)$/gm,(_,t)=>`<h6 dir="auto">${inlineMd(t)}</h6>`).replace(/^##### (.+)$/gm,(_,t)=>`<h5 dir="auto">${inlineMd(t)}</h5>`).replace(/^#### (.+)$/gm,(_,t)=>`<h4 dir="auto">${inlineMd(t)}</h4>`).replace(/^### (.+)$/gm,(_,t)=>`<h3 dir="auto">${inlineMd(t)}</h3>`).replace(/^## (.+)$/gm,(_,t)=>`<h2 dir="auto">${inlineMd(t)}</h2>`).replace(/^# (.+)$/gm,(_,t)=>`<h1 dir="auto">${inlineMd(t)}</h1>`);
   s=s.replace(/^---+$/gm,'<hr>');
   // (Blockquotes are handled by the pre-pass at the top of renderMd, before
   // fence_stash. The per-line passes below never see > prefixes.)
@@ -9613,7 +9613,7 @@ function renderMd(raw){
         else if(!it.ordered && /^\[ \] /.test(text)) inner='<span class="task-todo">☐</span> '+inlineMd(text.slice(4));
         else inner=inlineMd(text);
         const valueAttr=it.value!==null?` value="${it.value}"`:'';
-        html.push(`<li${valueAttr}>`,inner);
+        html.push(`<li${valueAttr} dir="auto">`,inner);
         work.push({closeItem:true});                // </li> after any nested sublists
         for(let i=it.sublists.length-1;i>=0;i--) work.push({open:it.sublists[i]});
       } else if(f.closeItem){
@@ -9936,7 +9936,7 @@ function renderMd(raw){
     return '\x00E'+(_pre_stash.length-1)+'\x00';
   });
   const parts=s.split(/\n{2,}/);
-  s=parts.map(p=>{p=p.trim();if(!p)return '';if(/^<(h[1-6]|ul|ol|table|pre|hr|blockquote)|^\x00[EQ]/.test(p))return p;return `<p>${p.replace(/\n/g,'<br>')}</p>`;}).join('\n');
+  s=parts.map(p=>{p=p.trim();if(!p)return '';if(/^<(h[1-6]|ul|ol|table|pre|hr|blockquote)|^\x00[EQ]/.test(p))return p;return `<p dir="auto">${p.replace(/\n/g,'<br>')}</p>`;}).join('\n');
   s=s.replace(/\x00E(\d+)\x00/g,(_,i)=>_pre_stash[+i]);
   // ── Restore MEDIA stash → inline images or download links ─────────────────
   s=s.replace(/\x00D(\d+)\x00/g,(_,i)=>_inlineMediaHtmlForRef(media_stash[+i]));
@@ -16113,7 +16113,7 @@ function _anchorSceneNodeForRow(row, opts){
       node.className='assistant-segment';
       node.setAttribute('data-anchor-scene-prose','1');
       node.dataset.rawText=text;
-      node.innerHTML=`<div class="msg-body">${renderMd?renderMd(text):esc(text)}</div>`;
+      node.innerHTML=`<div class="msg-body" dir="auto">${renderMd?renderMd(text):esc(text)}</div>`;
     }
   }else if(row.role==='thinking'){
     if(window._showThinking===false) return null;
@@ -20942,7 +20942,7 @@ function renderMessages(options){
       let row=_msgNodeRecycleEnabled?_recycleStash.get(rawIdx):null;
       if(row&&(!row.classList.contains('msg-row')||row.classList.contains('assistant-turn'))) row=null;
       const newRawText=String(displayContent).trim();
-      const nextRowHtml=`${filesHtml}<div class="msg-body">${bodyHtml}</div>${footHtml}`;
+      const nextRowHtml=`${filesHtml}<div class="msg-body" dir="auto">${bodyHtml}</div>${footHtml}`;
       if(row){
         row.className='msg-row';
         row.id=_userMessageDomId(rawIdx);
@@ -21055,7 +21055,7 @@ function renderMessages(options){
         if(isLastTextPart&&statusHtml){
           orderedSeg.insertAdjacentHTML('beforeend', statusHtml);
         }
-        _insertSegmentBlock(orderedSeg, `${isLastTextPart?filesHtml:''}<div class="msg-body">${(typeof m!=='undefined'&&m&&m._media_snapshots&&typeof m._media_snapshots==='object')?_stampMediaSnapshots(partBodyHtml,m._media_snapshots):partBodyHtml}</div>${isLastTextPart?footHtml:''}`);
+        _insertSegmentBlock(orderedSeg, `${isLastTextPart?filesHtml:''}<div class="msg-body" dir="auto">${(typeof m!=='undefined'&&m&&m._media_snapshots&&typeof m._media_snapshots==='object')?_stampMediaSnapshots(partBodyHtml,m._media_snapshots):partBodyHtml}</div>${isLastTextPart?footHtml:''}`);
         blocks.appendChild(orderedSeg);
         if(!firstSeg) firstSeg=orderedSeg;
       });
@@ -21115,9 +21115,9 @@ function renderMessages(options){
     const hasVisibleBody=!!(String(content||'').trim()||filesHtml||recoveryHtml);
     if(statusHtml){
       seg.insertAdjacentHTML('beforeend', statusHtml);
-      if(hasVisibleBody) _insertSegmentBlock(seg, `${filesHtml}<div class="msg-body">${bodyHtml}</div>${footHtml}`);
+      if(hasVisibleBody) _insertSegmentBlock(seg, `${filesHtml}<div class="msg-body" dir="auto">${bodyHtml}</div>${footHtml}`);
     }else if(hasVisibleBody){
-      _insertSegmentBlock(seg, `${filesHtml}<div class="msg-body">${bodyHtml}</div>${footHtml}`);
+      _insertSegmentBlock(seg, `${filesHtml}<div class="msg-body" dir="auto">${bodyHtml}</div>${footHtml}`);
     }else if(!(thinkingText&&window._showThinking!==false&&!isSimplifiedToolCalling())){
       seg.classList.add('assistant-segment-anchor');
     }

@@ -19,8 +19,8 @@
     --font-size-xs:11px;--font-size-sm:12px;--font-size-md:14px;
     --message-body-font-size:14px;--message-body-line-height:1.75;--message-code-font-size:12.5px;--message-pre-code-font-size:13px;--message-table-font-size:12px;
     --file-tree-toggle-width:10px;
-    --font-ui:-apple-system,BlinkMacSystemFont,"Segoe UI",Inter,system-ui,sans-serif;
-    --font-conversation:var(--font-ui);
+    --font-ui:"Vazirmatn",-apple-system,BlinkMacSystemFont,"Segoe UI",Inter,system-ui,sans-serif;
+    --font-conversation:"Vazirmatn",var(--font-ui);
     --font-mono:ui-monospace,"SFMono-Regular","SF Mono",Menlo,Consolas,"Liberation Mono",monospace;
     --surface-subtle:rgba(0,0,0,.025);--surface-subtle-hover:rgba(0,0,0,.045);
     --border-subtle:rgba(0,0,0,.08);--border-muted:rgba(0,0,0,.12);
@@ -7458,69 +7458,153 @@ main.main.showing-logs > #mainLogs{display:flex;}
  * code mirrored (e.g. `()fn()` instead of `fn()`) which is the salvage's
  * critical bug fix vs the original PR #1721 implementation.
  */
-.chat-content-rtl .msg-row{
-  direction:rtl;
-  text-align:right;
-  unicode-bidi:plaintext;
+/* ── RTL & BiDi chat layout ──────────────────────────────────────────────
+ * Automatic per-block RTL for Persian/Arabic content anywhere in chat, plus
+ * full-chat RTL mode triggered by .chat-content-rtl on <html>.
+ */
+
+/* Automatic per-block RTL for Persian/Arabic text in chat */
+.msg-body,
+.msg-body p,
+.msg-body li,
+.msg-body h1,
+.msg-body h2,
+.msg-body h3,
+.msg-body h4,
+.msg-body h5,
+.msg-body h6,
+.msg-body blockquote {
+  unicode-bidi: plaintext;
+  text-align: start;
 }
-.chat-content-rtl .msg-body{
-  text-align:start;
+
+:is(.msg-body, .msg-row, .assistant-turn, .assistant-segment):dir(rtl),
+:is(.msg-body, .msg-row, .assistant-turn, .assistant-segment) :is(p, li, h1, h2, h3, h4, h5, h6, blockquote):dir(rtl) {
+  direction: rtl;
+  text-align: right;
 }
+
+.msg-body:dir(rtl) {
+  padding-left: 0;
+  padding-right: var(--msg-rail, 30px);
+}
+
+.msg-row[data-role="user"] .msg-body:dir(rtl) {
+  padding-left: 14px;
+  padding-right: 14px;
+}
+
+.msg-body:dir(rtl) ul,
+.msg-body:dir(rtl) ol {
+  margin: 6px 20px 10px 0;
+}
+
+/* Explicit full-chat RTL mode triggered by .chat-content-rtl on <html> */
+.chat-content-rtl .msg-row,
+.chat-content-rtl .assistant-turn,
+.chat-content-rtl .assistant-segment,
+.chat-content-rtl .assistant-turn-blocks,
+.chat-content-rtl .user-turn {
+  direction: rtl;
+  text-align: right;
+  unicode-bidi: plaintext;
+}
+
+.chat-content-rtl .msg-body {
+  direction: rtl;
+  text-align: right;
+  padding-left: 0;
+  padding-right: var(--msg-rail, 30px);
+}
+
+.chat-content-rtl .msg-body p,
+.chat-content-rtl .msg-body li,
+.chat-content-rtl .msg-body h1,
+.chat-content-rtl .msg-body h2,
+.chat-content-rtl .msg-body h3,
+.chat-content-rtl .msg-body h4,
+.chat-content-rtl .msg-body h5,
+.chat-content-rtl .msg-body h6,
+.chat-content-rtl .msg-body blockquote {
+  direction: rtl;
+  text-align: right;
+}
+
+.chat-content-rtl .msg-row[data-role="user"] .msg-body {
+  padding-left: 14px;
+  padding-right: 14px;
+}
+
+.chat-content-rtl .msg-body ul,
+.chat-content-rtl .msg-body ol {
+  margin: 6px 20px 10px 0;
+}
+
 .chat-content-rtl .msg-body th,
 .chat-content-rtl .csv-table th,
-.chat-content-rtl .csv-table td{
-  text-align:right;
+.chat-content-rtl .csv-table td {
+  text-align: right;
 }
-.chat-content-rtl .tool-call-group-summary{
-  text-align:right;
+
+.chat-content-rtl .tool-call-group-summary {
+  text-align: right;
 }
+
 .chat-content-rtl textarea#msg,
-.chat-content-rtl #msg{
-  direction:rtl;
-  text-align:right;
-  unicode-bidi:plaintext;
+.chat-content-rtl #msg,
+textarea#msg:dir(rtl),
+#msg:dir(rtl) {
+  direction: rtl;
+  text-align: right;
+  unicode-bidi: plaintext;
 }
-/* Force code/pre/tt back to LTR — Arabic users still write English code. */
-.chat-content-rtl .msg-body pre,
-.chat-content-rtl .msg-body code,
-.chat-content-rtl .msg-body kbd,
-.chat-content-rtl .msg-body samp,
-.chat-content-rtl .msg-body tt,
-.chat-content-rtl .msg-body .hljs,
-.chat-content-rtl .msg-body .code-block,
-.chat-content-rtl .msg-body .code-block *,
-.chat-content-rtl .msg-body pre *{
-  direction:ltr;
-  text-align:left;
-  unicode-bidi:isolate;
-}
-/* Force LTR for content classes that render English-by-design even in chat:
-   KaTeX equations (math is LTR-only in standard notation), diff hunks
-   (file paths + line numbers), CSV tables (column order must stay
-   left-to-right), and skill file paths. */
-.chat-content-rtl .msg-body .katex,
-.chat-content-rtl .msg-body .katex-block,
-.chat-content-rtl .msg-body .katex-display,
-.chat-content-rtl .msg-body .katex-html,
-.chat-content-rtl .msg-body .katex-inline,
-.chat-content-rtl .msg-body .diff-block,
-.chat-content-rtl .msg-body .diff-block *,
-.chat-content-rtl .msg-body .csv-table-wrap,
-.chat-content-rtl .msg-body .csv-table,
-.chat-content-rtl .msg-body .csv-table *,
-.chat-content-rtl .msg-body .skill-file-path{
-  direction:ltr;
-  text-align:left;
-  unicode-bidi:isolate;
-}
-/* Tool-call content (commands, paths, JSON) stays LTR. */
-.chat-content-rtl .tool-call-group-body,
-.chat-content-rtl .tool-call-group-body *,
-.chat-content-rtl .tool-result,
-.chat-content-rtl .tool-result *{
-  direction:ltr;
-  text-align:left;
-  unicode-bidi:isolate;
+
+/* Force code/pre/tt/math/diffs and pure LTR blocks back to LTR */
+.msg-body p:dir(ltr),
+.msg-body li:dir(ltr),
+.msg-body h1:dir(ltr),
+.msg-body h2:dir(ltr),
+.msg-body h3:dir(ltr),
+.msg-body h4:dir(ltr),
+.msg-body h5:dir(ltr),
+.msg-body h6:dir(ltr),
+.msg-body blockquote:dir(ltr),
+.chat-content-rtl .msg-body p:dir(ltr),
+.chat-content-rtl .msg-body li:dir(ltr),
+.chat-content-rtl .msg-body h1:dir(ltr),
+.chat-content-rtl .msg-body h2:dir(ltr),
+.chat-content-rtl .msg-body h3:dir(ltr),
+.chat-content-rtl .msg-body h4:dir(ltr),
+.chat-content-rtl .msg-body h5:dir(ltr),
+.chat-content-rtl .msg-body h6:dir(ltr),
+.chat-content-rtl .msg-body blockquote:dir(ltr),
+.msg-body pre,
+.msg-body code,
+.msg-body kbd,
+.msg-body samp,
+.msg-body tt,
+.msg-body .hljs,
+.msg-body .code-block,
+.msg-body .code-block *,
+.msg-body pre *,
+.msg-body .katex,
+.msg-body .katex-block,
+.msg-body .katex-display,
+.msg-body .katex-html,
+.msg-body .katex-inline,
+.msg-body .diff-block,
+.msg-body .diff-block *,
+.msg-body .csv-table-wrap,
+.msg-body .csv-table,
+.msg-body .csv-table *,
+.msg-body .skill-file-path,
+.msg-body .tool-call-group-body,
+.msg-body .tool-call-group-body *,
+.msg-body .tool-result,
+.msg-body .tool-result * {
+  direction: ltr !important;
+  text-align: left !important;
+  unicode-bidi: isolate;
 }
 
 /* Cap composer width on very wide displays so the chip-cluster gap stays bounded */

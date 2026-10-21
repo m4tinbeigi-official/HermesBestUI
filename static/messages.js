@@ -2719,7 +2719,7 @@ function attachLiveStream(activeSid, streamId, uploaded=[], options={}){
     assistantRow.setAttribute('data-live-assistant','1');
     assistantRow.setAttribute('data-activity-burst-id',String(_currentActivityBurstId));
     assistantRow.setAttribute('data-live-segment-seq',String(_assistantSegmentSeq));
-    assistantBody=document.createElement('div');assistantBody.className='msg-body';
+    assistantBody=document.createElement('div');assistantBody.className='msg-body';assistantBody.setAttribute('dir','auto');
     assistantRow.appendChild(assistantBody);
     blocks.appendChild(assistantRow);
     if(typeof _moveLiveRunStatusToTurnEnd==='function') _moveLiveRunStatusToTurnEnd();
@@ -4240,6 +4240,7 @@ function attachLiveStream(activeSid, streamId, uploaded=[], options={}){
         node.setAttribute('data-anchor-scene-prose','1');
         const body=document.createElement('div');
         body.className='msg-body';
+        body.setAttribute('dir','auto');
         if(body.classList) body.classList.toggle('stream-fade-active',fade);
         node.appendChild(body);
         const baseRenderer=fade?_streamFadeRenderer(body):_safeSmdRenderer(body);
@@ -10147,9 +10148,11 @@ function attachBtwStream(parentSid, streamId, question){
     labelEl.textContent=t('btw_label');
     const qEl=document.createElement('div');
     qEl.className='msg-body';
+    qEl.setAttribute('dir','auto');
     qEl.textContent=question;
     const ansEl=document.createElement('div');
     ansEl.className='msg-body msg-btw-answer';
+    ansEl.setAttribute('dir','auto');
     ansEl.textContent='...';
     btwRow.appendChild(labelEl);
     btwRow.appendChild(qEl);
