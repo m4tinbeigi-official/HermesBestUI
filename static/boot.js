@@ -3364,7 +3364,7 @@ if(window.visualViewport){
   window._initResizePanels = function(){
     const sidebar    = document.querySelector('.sidebar');
     const rightpanel = document.querySelector('.rightpanel');
-    initResize('sidebarResize',    sidebar,    'right', SIDEBAR_MIN, SIDEBAR_MAX, 'hermes-sidebar-w');
+    initResize('sidebarResize',    sidebar,    'left',  SIDEBAR_MIN, SIDEBAR_MAX, 'hermes-sidebar-w');
     initResize('rightpanelResize', rightpanel, 'right', PANEL_MIN,   PANEL_MAX,   'hermes-panel-w');
   };
 })();
