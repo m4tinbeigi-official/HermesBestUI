@@ -159,30 +159,223 @@ async function deleteGalleryItem(encPath) {
 function openFilePreviewModal(encPath, type) {
   const modal = $('filePreviewModal');
   const body = $('filePreviewModalBody');
+  const title = $('filePreviewModalTitle');
+  const pathEl = $('filePreviewModalPath');
+  const icon = $('filePreviewModalIcon');
+  const badge = $('filePreviewModalBadge');
+  const copyBtn = $('filePreviewModalCopy');
+  const dlLink = $('filePreviewModalDownload');
+
   if (!modal || !body) return;
 
-  const previewUrl = `/api/files/preview?path=${encPath}`;
-  const downloadUrl = `/api/files/download?path=${encPath}`;
   const decPath = decodeURIComponent(encPath);
+  const fileName = decPath.split('/').pop() || decPath;
+  const downloadUrl = `/api/files/download?path=${encPath}`;
 
-  if (type === 'image') {
-    body.innerHTML = `<img src="${previewUrl}" style="max-width:100%;max-height:80vh;border-radius:8px;object-fit:contain" />`;
-  } else if (type === 'audio') {
-    body.innerHTML = `<audio controls autoplay src="${previewUrl}" style="width:100%"></audio>`;
-  } else {
-    body.innerHTML = `<iframe src="${previewUrl}" style="width:100%;height:70vh;border:none;background:#fff;border-radius:8px"></iframe>`;
-  }
-
-  const title = $('filePreviewModalTitle');
-  if (title) title.textContent = decPath.split('/').pop();
-
-  const dlLink = $('filePreviewModalDownload');
+  if (title) title.textContent = fileName;
+  if (pathEl) pathEl.textContent = decPath;
+  if (badge) badge.textContent = '';
+  if (copyBtn) copyBtn.style.display = 'none';
   if (dlLink) {
     dlLink.href = downloadUrl;
-    dlLink.setAttribute('download', decPath.split('/').pop());
+    dlLink.setAttribute('download', fileName);
+    dlLink.textContent = 'دانلود فایل';
   }
 
   modal.style.display = 'flex';
+  body.innerHTML = `
+    <div style="display:flex;flex-direction:column;align-items:center;justify-content:center;padding:40px;color:var(--muted);gap:12px">
+      <div class="loading-spinner"></div>
+      <span style="font-size:13px">در حال بررسی و دریافت اطلاعات فایل...</span>
+    </div>
+  `;
+
+  // Fetch structured file/directory content
+  fetch(`/api/files/content?path=${encPath}`)
+    .then(r => r.json())
+    .then(data => {
+      if (!data || !data.ok) {
+        body.innerHTML = `
+          <div style="text-align:center;padding:40px 20px;color:#ef4444">
+            <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="margin-bottom:10px"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+            <div style="font-weight:600;font-size:14px;margin-bottom:6px">امکان دسترسی یا نمایش فایل وجود ندارد</div>
+            <div style="font-size:12px;color:var(--muted)">${data && data.error ? data.error : 'فایل یا مسیر یافت نشد یا دسترسی مسدود است.'}</div>
+          </div>
+        `;
+        return;
+      }
+
+      // ── Handle Directory ──────────────────────────────
+      if (data.is_dir) {
+        if (icon) icon.textContent = '📁';
+        if (badge) badge.textContent = `${data.count} آیتم`;
+        if (dlLink) dlLink.textContent = 'دانلود پوشه (ZIP)';
+
+        const entries = data.entries || [];
+        if (entries.length === 0) {
+          body.innerHTML = `
+            <div style="text-align:center;padding:40px;color:var(--muted);font-size:13px">
+              <span>این پوشه خالی است.</span>
+            </div>
+          `;
+          return;
+        }
+
+        body.innerHTML = `
+          <div class="dir-explorer-table-wrap">
+            <table class="dir-explorer-table">
+              <thead>
+                <tr>
+                  <th style="width:40px"></th>
+                  <th>نام</th>
+                  <th style="width:100px">اندازه</th>
+                  <th style="width:140px">تاریخ تغییر</th>
+                  <th style="width:70px">عملیات</th>
+                </tr>
+              </thead>
+              <tbody>
+                ${entries.map(e => {
+                  const itemEnc = encodeURIComponent(e.path);
+                  const isDir = e.is_dir;
+                  const itemIcon = isDir ? '📁' : '📄';
+                  const clickFn = isDir 
+                    ? `openFilePreviewModal('${itemEnc}', 'dir')` 
+                    : `openFilePreviewModal('${itemEnc}', 'auto')`;
+                  return `
+                    <tr class="dir-explorer-row">
+                      <td style="text-align:center">${itemIcon}</td>
+                      <td>
+                        <a href="javascript:void(0)" onclick="${clickFn}" class="dir-entry-link ${isDir ? 'is-dir' : 'is-file'}" dir="ltr">
+                          ${e.name}
+                        </a>
+                      </td>
+                      <td style="font-size:12px;color:var(--muted)">${isDir ? '—' : _formatFileSize(e.size)}</td>
+                      <td style="font-size:11px;color:var(--muted)">${_formatDate(e.mtime)}</td>
+                      <td>
+                        <a href="/api/files/download?path=${itemEnc}" download class="sm-btn" style="padding:2px 8px;font-size:11px" title="دانلود">دانلود</a>
+                      </td>
+                    </tr>
+                  `;
+                }).join('')}
+              </tbody>
+            </table>
+          </div>
+        `;
+        return;
+      }
+
+      // ── Handle Images ──────────────────────────────
+      if (data.mime && data.mime.startsWith('image/')) {
+        if (icon) icon.textContent = '🖼️';
+        if (badge) badge.textContent = _formatFileSize(data.size);
+        body.innerHTML = `
+          <div style="display:flex;align-items:center;justify-content:center;width:100%;padding:10px">
+            <img src="/api/files/preview?path=${encPath}" style="max-width:100%;max-height:75vh;border-radius:8px;object-fit:contain;box-shadow:0 4px 20px rgba(0,0,0,0.3)" />
+          </div>
+        `;
+        return;
+      }
+
+      // ── Handle Audio ──────────────────────────────
+      if (data.mime && data.mime.startsWith('audio/')) {
+        if (icon) icon.textContent = '🎵';
+        if (badge) badge.textContent = _formatFileSize(data.size);
+        body.innerHTML = `
+          <div style="display:flex;flex-direction:column;align-items:center;justify-content:center;width:100%;padding:30px;gap:16px">
+            <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/><path d="M19.07 4.93a10 10 0 0 1 0 14.14M15.54 8.46a5 5 0 0 1 0 7.07"/></svg>
+            <audio controls autoplay src="/api/files/preview?path=${encPath}" style="width:100%;max-width:500px"></audio>
+          </div>
+        `;
+        return;
+      }
+
+      // ── Handle Video ──────────────────────────────
+      if (data.mime && data.mime.startsWith('video/')) {
+        if (icon) icon.textContent = '🎬';
+        if (badge) badge.textContent = _formatFileSize(data.size);
+        body.innerHTML = `
+          <div style="display:flex;align-items:center;justify-content:center;width:100%;padding:10px">
+            <video controls autoplay src="/api/files/preview?path=${encPath}" style="max-width:100%;max-height:75vh;border-radius:8px"></video>
+          </div>
+        `;
+        return;
+      }
+
+      // ── Handle PDF ──────────────────────────────
+      if (data.ext === '.pdf' || data.mime === 'application/pdf') {
+        if (icon) icon.textContent = '📑';
+        if (badge) badge.textContent = _formatFileSize(data.size);
+        body.innerHTML = `
+          <iframe src="/api/files/preview?path=${encPath}" style="width:100%;height:75vh;border:none;background:#fff;border-radius:8px"></iframe>
+        `;
+        return;
+      }
+
+      // ── Handle Text / Code / JSON / Logs / Configs ───
+      if (!data.is_binary && typeof data.content === 'string') {
+        const ext = (data.ext || '').replace('.', '').toLowerCase();
+        const iconMap = {
+          py: '🐍', js: '⚡', ts: '🔷', html: '🌐', css: '🎨', json: '📦',
+          sh: '🐚', bash: '🐚', zsh: '🐚', service: '⚙️', conf: '⚙️', ini: '⚙️',
+          yaml: '📋', yml: '📋', md: '📝', sql: '🗄️', log: '📜'
+        };
+        if (icon) icon.textContent = iconMap[ext] || '📄';
+        if (badge) badge.textContent = `${_formatFileSize(data.size)} · ${data.lines_count} خط${data.truncated ? ' (برش خورده)' : ''}`;
+        if (copyBtn) copyBtn.style.display = 'inline-flex';
+
+        body.innerHTML = `
+          <div class="code-preview-viewer">
+            <pre class="preview-code-pre"><code class="language-${ext || 'text'}" id="previewCodePre">${esc(data.content)}</code></pre>
+          </div>
+        `;
+
+        if (typeof Prism !== 'undefined') {
+          const codeEl = document.getElementById('previewCodePre');
+          if (codeEl) Prism.highlightElement(codeEl);
+        }
+        return;
+      }
+
+      // ── Other Binary Files ──────────────────────────
+      if (icon) icon.textContent = '💾';
+      if (badge) badge.textContent = _formatFileSize(data.size);
+      body.innerHTML = `
+        <div style="text-align:center;padding:50px 20px;color:var(--muted);display:flex;flex-direction:column;align-items:center;gap:12px">
+          <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+          <div style="font-size:14px;font-weight:600;color:var(--text)">فایل باینری قابل پیش‌نمایش متنی مستقیم نیست</div>
+          <div style="font-size:12px" dir="ltr">${data.name} (${_formatFileSize(data.size)})</div>
+          <a href="${downloadUrl}" download="${data.name}" class="sm-btn download-highlight-btn" style="margin-top:10px;padding:8px 20px;font-size:13px">دانلود مستقیم فایل</a>
+        </div>
+      `;
+    })
+    .catch(err => {
+      body.innerHTML = `
+        <div style="text-align:center;padding:40px 20px;color:#ef4444">
+          <div style="font-weight:600;font-size:14px">خطا در بارگذاری محتوا</div>
+          <div style="font-size:12px;margin-top:4px">${err.message || err}</div>
+        </div>
+      `;
+    });
+}
+
+function copyFilePreviewContent() {
+  const codeEl = document.getElementById('previewCodePre');
+  if (!codeEl) return;
+  const text = codeEl.textContent;
+  navigator.clipboard.writeText(text).then(() => {
+    const btn = document.getElementById('filePreviewModalCopy');
+    if (btn) {
+      const orig = btn.textContent;
+      btn.textContent = 'کپی شد! ✓';
+      btn.classList.add('copied');
+      setTimeout(() => {
+        btn.textContent = orig;
+        btn.classList.remove('copied');
+      }, 2000);
+    }
+  }).catch(() => {
+    alert('امکان کپی به حافظه موقت وجود ندارد.');
+  });
 }
 
 function closeFilePreviewModal() {

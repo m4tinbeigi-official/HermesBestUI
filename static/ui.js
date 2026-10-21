@@ -9425,12 +9425,27 @@ window.copyCodeBlock = function(btn) {
   }
 };
 
+function _isLikelyFilePath(str) {
+  if (!str || typeof str !== 'string') return false;
+  const s = str.trim();
+  if (s.length < 2 || s.length > 260) return false;
+  if (/^https?:\/\//i.test(s) || /^wss?:\/\//i.test(s)) return false;
+  if (s.startsWith('--') || (s.startsWith('-') && !s.includes('/'))) return false;
+  if (/[\s`"'\<\>\|\*\?]/.test(s)) return false;
+  if (/^\/(?:root|home|usr|etc|var|opt|tmp|Users|private|bin|sbin)\b/i.test(s)) return true;
+  if (/^~[\w.-]*(?:\/[\w.-]+)*\/?$/.test(s)) return true;
+  if (/^\.\.?\/(?:[\w.-]+\/)*[\w.-]+(?:\.[\w-]+|\/?)$/.test(s)) return true;
+  if (/^(?:workspace|projects|docs|scripts|data|media|clients|potterhead|bloggers|\.hermes|\.9router|app|static|api)\/[\w.-]+(?:\/[\w.-]+)*\/?$/i.test(s)) return true;
+  if (/^(?:[\w.-]+\/)*[\w.-]+\.(?:py|js|ts|jsx|tsx|json|csv|tsv|md|markdown|txt|html|css|scss|yaml|yml|sh|bash|zsh|service|conf|cfg|ini|log|sql|db|sqlite|env|bak|backup|png|jpg|jpeg|gif|webp|svg|mp3|wav|ogg|m4a|mp4|webm|pdf|zip|tar|gz|lock)$/i.test(s)) return true;
+  if (s.includes('/') && /^[\w.~/-]+$/.test(s) && !s.endsWith('//') && s !== '/') return true;
+  return false;
+}
+
 function _renderCodeSpan(c){
   const clean = String(c || '').trim();
-  const isFilePath = /^(?:\/Users\/|\/root\/|~\/|\.\/|workspace\/|\.hermes\/)[\w.-]+(?:\/[\w.-]+)*\.[a-zA-Z0-9]{2,8}$/.test(clean) || /^[\w.-]+\.(?:py|js|ts|json|csv|md|txt|html|css|yaml|yml|sh|bash|png|jpg|jpeg|webp|svg|mp3|wav|ogg|mp4|m4a|pdf)$/i.test(clean);
-  if (isFilePath) {
+  if (_isLikelyFilePath(clean)) {
     const enc = encodeURIComponent(clean);
-    return `<span class="file-ref-badge"><code>${esc(clean)}</code><a href="/api/files/preview?path=${enc}" target="_blank" class="file-ref-btn preview-btn" title="مشاهده فایل"><svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg></a><a href="/api/files/download?path=${enc}" download class="file-ref-btn download-btn" title="دانلود فایل"><svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg></a></span>`;
+    return `<span class="file-ref-badge" data-path="${esc(clean)}"><code onclick="openFilePreviewModal('${enc}', 'auto')" title="کلیک برای مشاهده">${esc(clean)}</code><button type="button" class="file-ref-btn preview-btn" onclick="openFilePreviewModal('${enc}', 'auto')" title="مشاهده محتوا"><svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg></button><a href="/api/files/download?path=${enc}" download class="file-ref-btn download-btn" title="دانلود فایل"><svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg></a></span>`;
   }
   return `<code>${esc(c)}</code>`;
 }
@@ -23650,6 +23665,7 @@ function _postProcessWithAnchorSuppression(container){
 function postProcessRenderedMessages(container) {
   highlightCode(container);
   addCopyButtons(container);
+  enhanceFilePaths(container);
   loadDiffInline(container);
   loadCsvInline(container);
   loadExcalidrawInline(container);
@@ -23658,6 +23674,78 @@ function postProcessRenderedMessages(container) {
   renderMermaidBlocks(container);
   renderKatexBlocks(container);
   initTreeViews(container);
+}
+
+function enhanceFilePaths(container) {
+  if (!container) return;
+  const msgBodies = container.querySelectorAll('.msg-body');
+  msgBodies.forEach(body => {
+    // Process text nodes inside msg-body that are not inside code, pre, a, button, or existing badges
+    const walker = document.createTreeWalker(body, NodeFilter.SHOW_TEXT, {
+      acceptNode(node) {
+        if (!node.nodeValue || !node.nodeValue.trim()) return NodeFilter.FILTER_REJECT;
+        let parent = node.parentElement;
+        while (parent && parent !== body) {
+          const tag = parent.tagName.toLowerCase();
+          if (tag === 'pre' || tag === 'code' || tag === 'a' || tag === 'button' || parent.classList.contains('file-ref-badge')) {
+            return NodeFilter.FILTER_REJECT;
+          }
+          parent = parent.parentElement;
+        }
+        return NodeFilter.FILTER_ACCEPT;
+      }
+    });
+
+    const pathRegex = /(?:\/[\w.-]+){2,}\/?|~[\w.-]*(?:\/[\w.-]+)+\/?|\.\.?\/(?:[\w.-]+\/)*[\w.-]+\.[\w]{1,8}|(?:workspace|projects|docs-and-finances|scripts-and-tools|data-and-reports|media-assets)\/[\w.-]+(?:\/[\w.-]+)*/g;
+
+    const textNodes = [];
+    let currentNode;
+    while ((currentNode = walker.nextNode())) {
+      textNodes.push(currentNode);
+    }
+
+    textNodes.forEach(node => {
+      const val = node.nodeValue;
+      pathRegex.lastIndex = 0;
+      let match = pathRegex.exec(val);
+      if (!match) return;
+
+      const fragment = document.createDocumentFragment();
+      let lastIndex = 0;
+      pathRegex.lastIndex = 0;
+
+      while ((match = pathRegex.exec(val)) !== null) {
+        const rawMatched = match[0];
+        const matchedPath = rawMatched.replace(/[.,;:!?)]+$/, '');
+        if (matchedPath.length < 3 || matchedPath === '/' || matchedPath.startsWith('//') || !_isLikelyFilePath(matchedPath)) {
+          continue;
+        }
+
+        const startIndex = match.index;
+        if (startIndex > lastIndex) {
+          fragment.appendChild(document.createTextNode(val.slice(lastIndex, startIndex)));
+        }
+
+        const enc = encodeURIComponent(matchedPath);
+        const badge = document.createElement('span');
+        badge.className = 'file-ref-badge';
+        badge.setAttribute('data-path', matchedPath);
+        badge.innerHTML = `<code onclick="openFilePreviewModal('${enc}', 'auto')" title="کلیک برای مشاهده">${esc(matchedPath)}</code><button type="button" class="file-ref-btn preview-btn" onclick="openFilePreviewModal('${enc}', 'auto')" title="مشاهده محتوا"><svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg></button><a href="/api/files/download?path=${enc}" download class="file-ref-btn download-btn" title="دانلود فایل"><svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg></a>`;
+        fragment.appendChild(badge);
+
+        lastIndex = startIndex + matchedPath.length;
+        pathRegex.lastIndex = lastIndex;
+      }
+
+      if (lastIndex < val.length) {
+        fragment.appendChild(document.createTextNode(val.slice(lastIndex)));
+      }
+
+      if (fragment.childNodes.length > 0) {
+        node.parentNode.replaceChild(fragment, node);
+      }
+    });
+  });
 }
 
 function highlightCode(container) {

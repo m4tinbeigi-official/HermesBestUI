@@ -2126,10 +2126,18 @@
 <div id="filePreviewModal" class="file-preview-modal" style="display:none" onclick="if(event.target===this)closeFilePreviewModal()">
   <div class="file-preview-modal-dialog">
     <div class="file-preview-modal-head">
-      <span id="filePreviewModalTitle">پیش‌نمایش فایل</span>
-      <div style="display:flex;gap:8px;align-items:center">
-        <a id="filePreviewModalDownload" class="sm-btn" download href="#">دانلود</a>
-        <button type="button" class="sm-btn" onclick="closeFilePreviewModal()">بستن</button>
+      <div class="file-preview-head-info">
+        <span id="filePreviewModalIcon" class="file-preview-modal-icon">📄</span>
+        <div class="file-preview-modal-titles">
+          <span id="filePreviewModalTitle" class="file-preview-modal-title">پیش‌نمایش فایل</span>
+          <span id="filePreviewModalPath" class="file-preview-modal-path" dir="ltr"></span>
+        </div>
+        <span id="filePreviewModalBadge" class="file-preview-meta-badge"></span>
+      </div>
+      <div class="file-preview-head-actions">
+        <button id="filePreviewModalCopy" class="sm-btn file-copy-btn" type="button" onclick="copyFilePreviewContent()" style="display:none">کپی متن</button>
+        <a id="filePreviewModalDownload" class="sm-btn download-highlight-btn" download href="#">دانلود فایل</a>
+        <button type="button" class="sm-btn close-btn" onclick="closeFilePreviewModal()">✕</button>
       </div>
     </div>
     <div class="file-preview-modal-body" id="filePreviewModalBody"></div>
