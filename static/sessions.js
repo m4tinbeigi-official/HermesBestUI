@@ -3653,9 +3653,12 @@ function _setActiveProjectFilter(projectId) {
   const next = projectId === NO_PROJECT_FILTER ? NO_PROJECT_FILTER : (projectId || null);
   if (_activeProject === next) return;
   _activeProject = next;
+  window._activeProject = _activeProject;
   renderSessionListFromCache();
   void renderSessionList({deferWhileInteracting:false});
+  if (typeof updateChatProjectHub === 'function') updateChatProjectHub();
 }
+window._setActiveProjectFilter = _setActiveProjectFilter;
 
 function _setSessionSourceFilter(filter) {
   const next = filter === 'cli' ? 'cli' : 'webui';
@@ -7092,6 +7095,8 @@ function _applySessionListPayload(sessData, projData, opts){
   _syncSessionAttentionSoundState(_allSessions);
   _pruneLineageReportCacheToVisibleSessions(_allSessions);
   _allProjects = projData.projects||[];
+  window._allProjects = _allProjects;
+  if (typeof updateChatProjectHub === 'function') updateChatProjectHub();
   // Capture the recovering-from-error state BEFORE clearing it: the error banner
   // DOM was rendered outside the signature path, so if this payload heals with
   // rows identical to the last render, the identical-signature skip below would

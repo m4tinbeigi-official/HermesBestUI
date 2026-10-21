@@ -14246,6 +14246,7 @@ function syncTopbar(){
   const titleLabel=$('titlebarProfileLabel');
   if(titleLabel) titleLabel.textContent=S.activeProfile||'default';
   if(typeof _syncProviderQuotaForActiveContext==='function') _syncProviderQuotaForActiveContext();
+  if(typeof updateChatProjectHub==='function') updateChatProjectHub();
 }
 
 function msgContent(m){
