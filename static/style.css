@@ -1726,7 +1726,48 @@
   .session-time.is-hidden{display:none;}
   .session-item:hover .session-time,.session-item:focus-within .session-time,.session-item.menu-open .session-time{display:none;}
   /* ── Session action trigger + dropdown ── */
-  .session-actions{position:absolute;right:6px;top:50%;transform:translateY(-50%);display:flex;align-items:center;justify-content:center;opacity:0;pointer-events:none;transition:opacity .15s ease;}
+  .session-actions{position:absolute;inset-inline-end:6px;top:50%;transform:translateY(-50%);display:flex;align-items:center;gap:3px;justify-content:center;opacity:0;pointer-events:none;transition:opacity .15s ease;z-index:3;}
+  .layout .sidebar .session-actions,
+  .sidebar .session-actions,
+  [dir="rtl"] .session-actions {
+    left: 6px !important;
+    right: auto !important;
+    inset-inline-end: 6px !important;
+    inset-inline-start: auto !important;
+  }
+  .layout .sidebar .session-item,
+  .sidebar .session-item,
+  [dir="rtl"] .session-item {
+    padding-left: 64px !important;
+    padding-right: 12px !important;
+    padding-inline-end: 64px !important;
+    padding-inline-start: 12px !important;
+  }
+  .layout .sidebar .session-text,
+  .sidebar .session-text,
+  [dir="rtl"] .session-text {
+    min-width: 0 !important;
+    flex: 1 1 auto !important;
+    overflow: hidden !important;
+  }
+  .layout .sidebar .session-title-row,
+  .sidebar .session-title-row,
+  [dir="rtl"] .session-title-row {
+    min-width: 0 !important;
+    display: flex !important;
+    align-items: center !important;
+    overflow: hidden !important;
+  }
+  .layout .sidebar .session-title,
+  .sidebar .session-title,
+  [dir="rtl"] .session-title {
+    overflow: hidden !important;
+    text-overflow: ellipsis !important;
+    white-space: nowrap !important;
+    min-width: 0 !important;
+    flex: 1 1 auto !important;
+    text-align: right !important;
+  }
   .session-item:hover .session-actions,.session-item:focus-within .session-actions,.session-item.menu-open .session-actions{opacity:1;pointer-events:auto;}
   .session-item.streaming:not(:hover):not(:focus-within):not(.menu-open) .session-actions,.session-item.unread:not(:hover):not(:focus-within):not(.menu-open) .session-actions{opacity:0;pointer-events:none;}
   .session-actions-trigger{width:26px;height:26px;border:1px solid transparent;border-radius:8px;background:transparent;color:var(--muted);cursor:pointer;padding:0;line-height:1;display:inline-flex;align-items:center;justify-content:center;transition:background .12s,color .12s,border-color .12s;}
@@ -2458,10 +2499,11 @@
   .steer-recovery-retry:hover{color:var(--accent)}
   .msg-role{font-size:12px;font-weight:500;letter-spacing:.01em;margin-bottom:8px;display:flex;align-items:center;gap:8px;}
   .msg-role.user{color:var(--accent);}
-  .msg-role.assistant{color:var(--accent-text);opacity:.6;}
+  .msg-role.assistant{color:var(--accent-text);opacity:1;}
   .role-icon{width:22px;height:22px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:700;flex-shrink:0;}
   .role-icon.user{background:var(--accent-bg);color:var(--accent-text);border:1px solid var(--accent-bg-strong);}
-  .role-icon.assistant{background:var(--accent-bg-strong);color:var(--accent-text);border:1px solid var(--accent-bg-strong);}
+  .role-icon.assistant{background:#0b0e17;color:var(--accent-text);border:1px solid rgba(56,189,248,.35);overflow:hidden;padding:0;box-shadow:0 0 6px rgba(0,255,200,.25);}
+  .role-icon.assistant img,.mrhermes-avatar-img{width:20px!important;height:20px!important;max-width:20px!important;max-height:20px!important;border-radius:50%!important;object-fit:cover!important;display:block!important;}
   .msg-body{font-family:var(--font-conversation);font-size:var(--message-body-font-size);line-height:var(--message-body-line-height);color:var(--text);padding-left:30px;max-width:680px;overflow-wrap:anywhere;}
   .msg-body p{margin-bottom:10px;}.msg-body p:last-child{margin-bottom:0;}
   .msg-body td p,.msg-body th p{margin:0;}
@@ -2709,6 +2751,8 @@
   .empty-logo{position:relative;display:flex;align-items:center;justify-content:center;margin-bottom:10px;background:none;border:none;border-radius:0;box-shadow:none;}
   .empty-logo::before{content:"";position:absolute;left:50%;top:50%;width:190px;height:190px;transform:translate(-50%,-50%);border-radius:50%;background:var(--logo-glow);z-index:0;pointer-events:none;}
   .empty-logo svg{position:relative;z-index:1;width:88px;height:88px;display:block;}
+  .empty-logo img,
+  .empty-state-mrhermes-logo{position:relative;z-index:1;width:68px!important;height:68px!important;max-width:68px!important;max-height:68px!important;border-radius:16px!important;object-fit:cover!important;box-shadow:0 0 24px rgba(0,255,200,0.35)!important;display:block!important;margin:0 auto 10px auto!important;}
   /* Light themes (default :root): deeper, richer gradient holds contrast on
      a pale background; cooler, restrained bloom. */
   :root .empty-logo .hm-g0{stop-color:#0AA6CC;}

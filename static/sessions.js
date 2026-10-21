@@ -10251,6 +10251,12 @@ function renderSessionListFromCache(){
       _saveCollapsed();
       renderSessionListFromCache();
     };
+    hdr.oncontextmenu=(e)=>{
+      if(!g.project) return;
+      e.preventDefault();
+      e.stopPropagation();
+      _showProjectContextMenu(e, g.project, hdr);
+    };
     wrapper.appendChild(hdr);
 
     let groupTopPad=0;
@@ -13605,115 +13611,121 @@ function _startProjectRename(proj, chip){
 function _showProjectContextMenu(e, proj, chip){
   document.querySelectorAll('.project-ctx-menu').forEach(el=>el.remove());
   const menu=document.createElement('div');
-  menu.className='project-ctx-menu';
-  // background: var(--surface) — fully-opaque theme variable (not var(--panel),
-  // which is undefined in this codebase and falls back to transparent, letting
-  // the session list show through the menu). Same variable used by
-  // .session-action-menu and other floating popovers.
-  menu.style.cssText='position:fixed;background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:6px 0;z-index:9999;min-width:140px;box-shadow:0 4px 16px rgba(0,0,0,.35);';
+  menu.className='project-ctx-menu session-action-menu';
+  menu.style.cssText='position:fixed;background:var(--surface);border:1px solid var(--border2);border-radius:10px;padding:6px;z-index:9999;min-width:180px;box-shadow:0 8px 24px rgba(0,0,0,.4);direction:rtl;text-align:right;font-family:inherit;';
   menu.style.left=e.clientX+'px';
   menu.style.top=e.clientY+'px';
 
   // Rename option
   const renameItem=document.createElement('div');
-  renameItem.textContent='Rename';
-  renameItem.style.cssText='padding:7px 14px;cursor:pointer;font-size:13px;color:var(--text);';
-  renameItem.onmouseenter=()=>renameItem.style.background='var(--hover-bg)';
-  renameItem.onmouseleave=()=>renameItem.style.background='';
-  renameItem.onclick=()=>{menu.remove();_startProjectRename(proj,chip);};
+  renameItem.innerHTML=`<div class="ws-opt-action" style="display:flex;align-items:center;gap:8px;padding:8px 12px;cursor:pointer;border-radius:6px;font-size:12.5px;color:var(--text);">${ICONS.edit}<span>تغییر نام پوشه</span></div>`;
+  const renameBtn=renameItem.querySelector('.ws-opt-action');
+  renameBtn.onmouseenter=()=>renameBtn.style.background='var(--hover-bg)';
+  renameBtn.onmouseleave=()=>renameBtn.style.background='';
+  renameBtn.onclick=async()=>{
+    menu.remove();
+    const newName=prompt('نام جدید پوشه / پروژه:', proj.name);
+    if(!newName||!newName.trim()||newName.trim()===proj.name) return;
+    try {
+      await api('/api/projects/rename',{method:'POST',body:JSON.stringify({project_id:proj.project_id,name:newName.trim(),color:proj.color})});
+      proj.name=newName.trim();
+      const p=(typeof _allProjects!=='undefined'&&Array.isArray(_allProjects))?_allProjects.find(x=>x.project_id===proj.project_id):null;
+      if(p) p.name=newName.trim();
+      if(typeof showToast==='function') showToast('نام پوشه به «'+newName.trim()+'» تغییر کرد');
+      await renderSessionList({deferWhileInteracting:false});
+    }catch(err){
+      if(typeof showToast==='function') showToast('خطا در تغییر نام: '+(err.message||err));
+    }
+  };
   menu.appendChild(renameItem);
 
-  // Color picker row
+  // Color picker section
+  const colorTitle=document.createElement('div');
+  colorTitle.style.cssText='padding:6px 12px 2px 12px;font-size:11px;color:var(--muted);font-weight:600;';
+  colorTitle.textContent='تغییر رنگ پوشه:';
+  menu.appendChild(colorTitle);
+
   const colorRow=document.createElement('div');
-  colorRow.style.cssText='display:flex;gap:5px;padding:7px 14px;align-items:center;';
-  PROJECT_COLORS.forEach(hex=>{
+  colorRow.style.cssText='display:flex;gap:6px;padding:6px 12px 8px;align-items:center;flex-wrap:wrap;';
+  const colors=(typeof PROJECT_COLORS!=='undefined'&&Array.isArray(PROJECT_COLORS))?PROJECT_COLORS:['#3b82f6','#10b981','#f59e0b','#ec4899','#8b5cf6','#06b6d4','#6366f1'];
+  colors.forEach(hex=>{
     const dot=document.createElement('span');
-    dot.style.cssText=`width:16px;height:16px;border-radius:50%;background:${hex};cursor:pointer;display:inline-block;flex-shrink:0;`;
-    if(hex===(proj.color||'')) dot.style.outline='2px solid var(--text)';
+    dot.style.cssText=`width:18px;height:18px;border-radius:50%;background:${hex};cursor:pointer;display:inline-block;flex-shrink:0;transition:transform .12s;box-shadow:0 0 4px rgba(0,0,0,.3);`;
+    if(hex===(proj.color||'')) dot.style.outline='2px solid #fff';
+    dot.onmouseenter=()=>dot.style.transform='scale(1.2)';
+    dot.onmouseleave=()=>dot.style.transform='scale(1)';
     dot.onclick=async()=>{
       menu.remove();
       try {
         await api('/api/projects/rename',{method:'POST',body:JSON.stringify({project_id:proj.project_id,name:proj.name,color:hex})});
-        await renderSessionList({deferWhileInteracting:false,keepProjectPicker:true});
-        showToast('Color updated');
-      } catch(e) {
-        showToast('Color update failed: '+(e.message||e));
+        proj.color=hex;
+        const p=(typeof _allProjects!=='undefined'&&Array.isArray(_allProjects))?_allProjects.find(x=>x.project_id===proj.project_id):null;
+        if(p) p.color=hex;
+        if(typeof showToast==='function') showToast('رنگ پوشه به‌روزرسانی شد');
+        await renderSessionList({deferWhileInteracting:false});
+      }catch(e){
+        if(typeof showToast==='function') showToast('خطا در تغییر رنگ: '+(e.message||e));
       }
     };
     colorRow.appendChild(dot);
   });
   menu.appendChild(colorRow);
 
-  // Divider before bindings
-  const bindSep=document.createElement('hr');
-  bindSep.style.cssText='border:none;border-top:1px solid var(--border);margin:4px 0;';
-  menu.appendChild(bindSep);
-
-  // ── Project settings: ONE row, nothing else ─────────────────────────────
-  // The chip menu used to grow from 3 rows to 6 + N (an inline binding summary
-  // plus one "Unbind …" row per bound workspace, model and effort) and from
-  // ~193px to ~355px wide, because the longest row is the workspace path —
-  // exactly why _buildSessionAction keeps menus to icon + label. The unbind
-  // rows were redundant too: the dialog already carries an × per workspace and
-  // a "(none)" option for model and effort. One row opens the dialog.
-  // (re-gate 2026-10-07T19:22:30Z, item 1.)
-  const bindItem=document.createElement('div');
-  bindItem.textContent=t('pb_bindings_menu');
-  bindItem.style.cssText='padding:7px 14px;cursor:pointer;font-size:13px;color:var(--text);';
-  bindItem.onmouseenter=()=>bindItem.style.background='var(--hover-bg)';
-  bindItem.onmouseleave=()=>bindItem.style.background='';
-  bindItem.onclick=()=>{
+  // New Chat inside folder
+  const newChatItem=document.createElement('div');
+  newChatItem.innerHTML=`<div class="ws-opt-action" style="display:flex;align-items:center;gap:8px;padding:8px 12px;cursor:pointer;border-radius:6px;font-size:12.5px;color:var(--text);">${ICONS.plus||'<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>'}<span>گفتگوی جدید در این پوشه</span></div>`;
+  const newChatBtn=newChatItem.querySelector('.ws-opt-action');
+  newChatBtn.onmouseenter=()=>newChatBtn.style.background='var(--hover-bg)';
+  newChatBtn.onmouseleave=()=>newChatBtn.style.background='';
+  newChatBtn.onclick=()=>{
     menu.remove();
-    _showProjectBindingsDialog(proj);
+    if(typeof newSession==='function') newSession(null,{project_id:proj.project_id});
   };
-  menu.appendChild(bindItem);
+  menu.appendChild(newChatItem);
 
   // Divider + Delete
   const sep=document.createElement('hr');
-  sep.style.cssText='border:none;border-top:1px solid var(--border);margin:4px 0;';
+  sep.style.cssText='border:none;border-top:1px solid var(--border2);margin:4px 0;';
   menu.appendChild(sep);
+
   const delItem=document.createElement('div');
-  delItem.textContent='Delete';
-  delItem.style.cssText='padding:7px 14px;cursor:pointer;font-size:13px;color:var(--error,#e94560);';
-  delItem.onmouseenter=()=>delItem.style.background='var(--hover-bg)';
-  delItem.onmouseleave=()=>delItem.style.background='';
-  delItem.onclick=()=>{menu.remove();_confirmDeleteProject(proj);};
+  delItem.innerHTML=`<div class="ws-opt-action" style="display:flex;align-items:center;gap:8px;padding:8px 12px;cursor:pointer;border-radius:6px;font-size:12.5px;color:var(--error,#e94560);">${ICONS.trash}<span>حذف پوشه</span></div>`;
+  const delBtn=delItem.querySelector('.ws-opt-action');
+  delBtn.onmouseenter=()=>delBtn.style.background='rgba(239,83,80,.1)';
+  delBtn.onmouseleave=()=>delBtn.style.background='';
+  delBtn.onclick=()=>{menu.remove();_confirmDeleteProject(proj);};
   menu.appendChild(delItem);
 
   document.body.appendChild(menu);
-  // Clamp the menu to the viewport the way the session ⋮ menu does (8px
-  // margins + a width cap): with several bound workspaces the old long rows
-  // pushed it off-screen on a 390px phone. (re-gate 2026-10-07T19:22:30Z,
-  // item 5.)
-  const menuW=Math.min(menu.offsetWidth||menu.getBoundingClientRect().width||140, window.innerWidth-16);
+  const menuW=Math.min(menu.offsetWidth||190, window.innerWidth-16);
   menu.style.width=menuW+'px';
   let menuLeft=e.clientX;
   if(menuLeft+menuW>window.innerWidth-8) menuLeft=window.innerWidth-menuW-8;
   if(menuLeft<8) menuLeft=8;
   menu.style.left=menuLeft+'px';
-  const menuH=menu.offsetHeight||0;
   let menuTop=e.clientY;
-  if(menuTop+menuH>window.innerHeight-8) menuTop=window.innerHeight-menuH-8;
+  if(menuTop+menu.offsetHeight>window.innerHeight-8) menuTop=window.innerHeight-menu.offsetHeight-8;
   if(menuTop<8) menuTop=8;
   menu.style.top=menuTop+'px';
-  const dismiss=()=>{menu.remove();document.removeEventListener('click',dismiss);};
-  setTimeout(()=>document.addEventListener('click',dismiss),0);
+  const dismiss=(ev)=>{if(!menu.contains(ev.target)){menu.remove();document.removeEventListener('click',dismiss);}};
+  setTimeout(()=>document.addEventListener('click',dismiss),10);
 }
 
 async function _confirmDeleteProject(proj){
-  const ok=await showConfirmDialog({
-    message:'Delete project "'+proj.name+'"? Sessions will be unassigned but not deleted.',
-    confirmLabel:t('delete_title'),
-    danger:true
-  });
-  if(!ok){return;}
+  const ok=confirm(`آیا از حذف پوشه «${proj.name}» اطمینان دارید؟ گفتگوها حذف نمی‌شوند و به گفتگوهای عمومی منتقل خواهند شد.`);
+  if(!ok) return;
   try {
     await api('/api/projects/delete',{method:'POST',body:JSON.stringify({project_id:proj.project_id})});
     if(_activeProject===proj.project_id) _activeProject=null;
-    await renderSessionList({deferWhileInteracting:false,keepProjectPicker:true});
-    showToast('Project deleted');
-  } catch(e) {
-    showToast('Delete failed: '+(e.message||e));
+    const idx=(typeof _allProjects!=='undefined'&&Array.isArray(_allProjects))?_allProjects.findIndex(x=>x.project_id===proj.project_id):-1;
+    if(idx>=0) _allProjects.splice(idx,1);
+    if(Array.isArray(_allSessions)){
+      _allSessions.forEach(s=>{if(s&&s.project_id===proj.project_id)s.project_id=null;});
+    }
+    await renderSessionList({deferWhileInteracting:false});
+    if(typeof showToast==='function') showToast('پوشه حذف شد');
+  }catch(e){
+    if(typeof showToast==='function') showToast('خطا در حذف پوشه: '+(e.message||e));
   }
 }
 
