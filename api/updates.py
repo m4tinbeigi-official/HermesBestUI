@@ -1564,6 +1564,10 @@ def _check_repo(path, name, channel=DEFAULT_UPDATE_CHANNEL):
     # See #2756.
     fetch_out, fetch_ok = _run_git(['fetch', 'origin', '--tags', '--force'], path, timeout=15)
     if not fetch_ok:
+        _, branch_fetch_ok = _run_git(['fetch', 'origin', '--quiet'], path, timeout=10)
+        if branch_fetch_ok:
+            fetch_ok = True
+    if not fetch_ok:
         release_info = _check_repo_release(path, name, channel)
         message = 'fetch failed'
         if fetch_out:
