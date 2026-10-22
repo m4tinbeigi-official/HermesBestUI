@@ -2451,6 +2451,10 @@ def _apply_update_inner(target, channel=DEFAULT_UPDATE_CHANNEL):
     # --force so a remote re-tag doesn't block the update path (see #2756).
     fetch_out, fetch_ok = _run_git(['fetch', 'origin', '--quiet', '--tags', '--force'], path, timeout=15)
     if not fetch_ok:
+        _, branch_fetch_ok = _run_git(['fetch', 'origin', '--quiet'], path, timeout=10)
+        if branch_fetch_ok:
+            fetch_ok = True
+    if not fetch_ok:
         if _is_git_lock_error(fetch_out):
             return {
                 'ok': False,
