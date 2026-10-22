@@ -25449,6 +25449,10 @@ function _renderTreeItems(container, entries, depth){
     const isDirLike = !isExternalLink && (item.type === 'dir' || (isLk && item.is_dir));
     const isFileLike = !isExternalLink && !isDirLike;
     el.dataset.wsIsDir = String(isDirLike);
+    const itemExt = isDirLike ? 'dir' : (item.name.lastIndexOf('.') >= 0 ? item.name.slice(item.name.lastIndexOf('.') + 1).toLowerCase() : '');
+    el.dataset.ext = itemExt;
+    el.dataset.depth = String(depth);
+    el.style.setProperty('--depth', depth);
     if(isExternalLink || isReadOnlyEscape){el.removeAttribute('draggable');el.ondragstart=null;}
 
     if(isDirLike){
@@ -25579,20 +25583,56 @@ function _renderTreeItems(container, entries, depth){
       el.appendChild(sizeEl);
     }
 
-    // Delete button -- for file-like rows and directory-like rows
-    if(isFileLike){
-      if(!isReadOnlyEscape){
-        const del=document.createElement('button');
-        del.className='file-del-btn';del.title=t('delete_title');del.textContent='\u00d7';
-        del.onclick=async(e)=>{e.stopPropagation();await deleteWorkspaceFile(item.path,item.name);};
-        el.appendChild(del);
+    // Row action buttons (Copy path, Download, Delete)
+    const actionsWrap=document.createElement('div');
+    actionsWrap.className='file-item-actions';
+
+    const copyBtn=document.createElement('button');
+    copyBtn.type='button';
+    copyBtn.className='file-action-mini-btn';
+    copyBtn.title=typeof t==='function'?t('copy_relative_path'):'Copy relative path';
+    copyBtn.setAttribute('aria-label','Copy relative path');
+    copyBtn.innerHTML='<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>';
+    copyBtn.onclick=(e)=>{
+      e.stopPropagation();
+      if(navigator.clipboard&&navigator.clipboard.writeText){
+        navigator.clipboard.writeText(item.path);
+        if(typeof showToast==='function')showToast(item.path, 1500);
       }
-    }else if(isDirLike&& !isReadOnlyEscape){
-      const del=document.createElement('button');
-      del.className='file-del-btn';del.title=t('delete_title');del.textContent='\u00d7';
-      del.onclick=async(e)=>{e.stopPropagation();await deleteWorkspaceDir(item.path,item.name);};
-      el.appendChild(del);
+    };
+    actionsWrap.appendChild(copyBtn);
+
+    if(isFileLike && typeof downloadFile==='function'){
+      const dlBtn=document.createElement('button');
+      dlBtn.type='button';
+      dlBtn.className='file-action-mini-btn';
+      dlBtn.title='Download';
+      dlBtn.setAttribute('aria-label','Download');
+      dlBtn.innerHTML='<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>';
+      dlBtn.onclick=(e)=>{e.stopPropagation();downloadFile(item.path);};
+      actionsWrap.appendChild(dlBtn);
     }
+
+    if(isFileLike && !isReadOnlyEscape){
+      const del=document.createElement('button');
+      del.type='button';
+      del.className='file-del-btn file-action-mini-btn del-btn';
+      del.title=t('delete_title');
+      del.setAttribute('aria-label',t('delete_title'));
+      del.textContent='\u00d7';
+      del.onclick=async(e)=>{e.stopPropagation();await deleteWorkspaceFile(item.path,item.name);};
+      actionsWrap.appendChild(del);
+    }else if(isDirLike && !isReadOnlyEscape){
+      const del=document.createElement('button');
+      del.type='button';
+      del.className='file-del-btn file-action-mini-btn del-btn';
+      del.title=t('delete_title');
+      del.setAttribute('aria-label',t('delete_title'));
+      del.textContent='\u00d7';
+      del.onclick=async(e)=>{e.stopPropagation();await deleteWorkspaceDir(item.path,item.name);};
+      actionsWrap.appendChild(del);
+    }
+    el.appendChild(actionsWrap);
 
     if(isDirLike){
       if(!isReadOnlyEscape){

@@ -3037,17 +3037,17 @@
      panel's width so the header can collapse less-essential elements as the
      user resizes the panel narrower. */
   .rightpanel{width:300px;background:var(--sidebar);border-right:1px solid var(--border);border-left:none;display:flex;flex-direction:column;overflow:hidden;flex-shrink:0;min-width:0;opacity:1;transform:translateX(0);transform-origin:left center;transition:width .24s cubic-bezier(.22,1,.36,1),opacity .18s ease,transform .24s cubic-bezier(.22,1,.36,1),border-color .24s ease;container-type:inline-size;container-name:rightpanel;}
-  .panel-header{padding:12px 16px;border-bottom:1px solid var(--border);font-size:11px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.1em;display:grid;grid-template-columns:minmax(0,1fr) auto;align-items:center;gap:6px;overflow:visible;}
-  .workspace-panel-title-group{grid-column:1;grid-row:1;display:flex;align-items:center;min-width:0;}
+  .panel-header{padding:10px 14px;border-bottom:1px solid var(--border);font-size:11px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.06em;display:grid;grid-template-columns:minmax(0,1fr) auto;align-items:center;gap:6px;overflow:visible;background:var(--sidebar);backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);position:sticky;top:0;z-index:5;}
+  .workspace-panel-title-group{grid-column:1;grid-row:1;display:flex;align-items:center;min-width:0;gap:6px;}
   .workspace-panel-title-group > span:first-child{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;min-width:0;}
-  .workspace-panel-heading{cursor:default;border-radius:6px;padding:2px 4px;margin:-2px -4px;}
+  .workspace-panel-heading{cursor:default;border-radius:6px;padding:2px 6px;margin:-2px -4px;transition:all .15s;}
   .workspace-panel-heading.workspace-panel-heading--enabled{cursor:pointer;}
   .workspace-panel-heading.workspace-panel-heading--enabled:hover,
   .workspace-panel-heading.workspace-panel-heading--enabled:focus-visible{color:var(--text);background:var(--hover-bg);outline:none;}
-  .git-badge{grid-column:1 / -1;grid-row:2;justify-self:start;font-size:9px;font-weight:600;color:var(--muted);background:var(--hover-bg);padding:2px 7px;border-radius:4px;letter-spacing:.02em;white-space:nowrap;font-family:var(--font-mono);overflow:hidden;min-width:0;max-width:100%;}
+  .git-badge{grid-column:1 / -1;grid-row:2;justify-self:start;font-size:9.5px;font-weight:600;color:var(--muted);background:var(--surface-subtle);border:1px solid var(--border);padding:1px 7px;border-radius:999px;letter-spacing:.02em;white-space:nowrap;font-family:var(--font-mono);overflow:hidden;min-width:0;max-width:100%;transition:all .15s;}
   .topbar-source-badge{display:inline-flex;align-items:center;margin-left:6px;padding:2px 7px;border-radius:999px;background:var(--accent-bg);color:var(--accent-text);font-size:10px;font-weight:700;letter-spacing:.02em;vertical-align:middle;}
-  .git-badge.dirty{color:var(--accent-text);background:var(--accent-bg);}
-  .panel-actions{grid-column:2;grid-row:1;display:flex;gap:4px;flex-shrink:0;margin-left:auto;}
+  .git-badge.dirty{color:var(--accent-text);background:var(--accent-bg);border-color:var(--accent-bg-strong);}
+  .panel-actions{grid-column:2;grid-row:1;display:flex;gap:3px;flex-shrink:0;margin-left:auto;align-items:center;}
 
   /* Crisp display:none at narrow widths so the header doesn't show a sliver
      of an ellipsised label or git badge — icons survive longest. */
@@ -3057,9 +3057,10 @@
   @container rightpanel (max-width: 160px){
     .workspace-panel-title-group{display:none;}
   }
-  .panel-icon-btn{width:24px;height:24px;background:none;border:none;color:var(--muted);cursor:pointer;border-radius:5px;font-size:13px;display:flex;align-items:center;justify-content:center;transition:all .15s;}
-  .panel-icon-btn:hover{background:var(--hover-bg);color:var(--text);}
-  .panel-icon-btn:disabled{opacity:.35;cursor:not-allowed;}
+  .panel-icon-btn{width:26px;height:26px;background:none;border:none;color:var(--muted);cursor:pointer;border-radius:6px;font-size:13px;display:flex;align-items:center;justify-content:center;transition:all .15s ease;}
+  .panel-icon-btn:hover{background:var(--hover-bg);color:var(--text);transform:translateY(-1px);}
+  .panel-icon-btn:active{transform:translateY(0);}
+  .panel-icon-btn:disabled{opacity:.35;cursor:not-allowed;transform:none;}
   .panel-icon-btn:disabled:hover{background:none;color:var(--muted);}
   /* File row actions (shown on hover) */
   /* file-item-actions removed: delete button is now a flex child */
@@ -3117,18 +3118,42 @@
   .breadcrumb-link:hover{color:var(--text);background:var(--hover-bg);}
   .breadcrumb-current{color:var(--text);font-weight:500;}
   .breadcrumb-sep{color:var(--border);margin:0 1px;font-size:11px;}
-  .file-tree{flex:1;overflow-y:auto;padding:8px;}
+  .file-tree{flex:1;overflow-y:auto;padding:4px 8px;}
   .file-tree.drag-over-upload{outline:2px dashed var(--blue,#3b82f6);outline-offset:-2px;border-radius:6px;}
-  .file-item{display:flex;align-items:center;gap:6px;padding:6px 10px;border-radius:8px;cursor:pointer;font-size:12px;color:var(--muted);transition:all .12s;min-width:0;}
+  .file-item{display:flex;align-items:center;gap:6px;padding:4px 8px;border-radius:6px;cursor:pointer;font-size:12px;color:var(--muted);transition:all .12s;min-width:0;position:relative;}
   .file-item:hover{background:var(--hover-bg);color:var(--text);}
-  .file-item.active{background:var(--accent-bg);color:var(--accent-text);}
+  .file-item.active{background:var(--accent-bg);color:var(--accent-text);font-weight:500;}
   .file-item.dragging{opacity:.35;border:1px dashed var(--accent-bg-strong);}
   .file-item.drag-over,.breadcrumb-seg.drag-over{background:var(--accent-bg);color:var(--accent-text);outline:1px solid var(--accent-bg-strong);outline-offset:-1px;}
   .file-item.drag-over-upload,.breadcrumb-seg.drag-over-upload{background:var(--blue,#3b82f6);color:#fff;outline:1px dashed rgba(255,255,255,.5);outline-offset:-1px;}
-  .file-tree-toggle{font-size:10px;color:var(--muted);flex-shrink:0;width:var(--file-tree-toggle-width);text-align:center;line-height:1;}
+  .file-tree-toggle{font-size:10px;color:var(--muted);flex-shrink:0;width:var(--file-tree-toggle-width);text-align:center;line-height:1;transition:transform .12s;}
   .file-tree-toggle-placeholder{display:inline-block;flex:0 0 var(--file-tree-toggle-width);width:var(--file-tree-toggle-width);line-height:1;}
   .file-item.file-empty{color:var(--muted);opacity:.5;font-style:italic;cursor:default;font-size:11px;}
   .file-item.file-empty:hover{background:none;color:var(--muted);}
+
+  /* Depth guide lines for nested hierarchy */
+  .file-item[data-depth]:not([data-depth="0"])::before {
+    content:'';position:absolute;left:calc(var(--depth, 1) * 16px - 2px);top:0;bottom:0;width:1px;background:var(--border);opacity:0.4;
+  }
+
+  /* File extension colored icons */
+  .file-item[data-ext="dir"] .file-icon{color:#f59e0b;opacity:.9;}
+  .file-item[data-ext="py"] .file-icon{color:#38bdf8;opacity:.95;}
+  .file-item[data-ext="js"] .file-icon,.file-item[data-ext="ts"] .file-icon,.file-item[data-ext="jsx"] .file-icon,.file-item[data-ext="tsx"] .file-icon{color:#eab308;opacity:.95;}
+  .file-item[data-ext="json"] .file-icon,.file-item[data-ext="yaml"] .file-icon,.file-item[data-ext="yml"] .file-icon,.file-item[data-ext="toml"] .file-icon{color:#fb923c;opacity:.9;}
+  .file-item[data-ext="md"] .file-icon,.file-item[data-ext="txt"] .file-icon{color:#60a5fa;opacity:.9;}
+  .file-item[data-ext="css"] .file-icon,.file-item[data-ext="scss"] .file-icon{color:#ec4899;opacity:.9;}
+  .file-item[data-ext="html"] .file-icon{color:#ef4444;opacity:.9;}
+  .file-item[data-ext="png"] .file-icon,.file-item[data-ext="jpg"] .file-icon,.file-item[data-ext="jpeg"] .file-icon,.file-item[data-ext="svg"] .file-icon,.file-item[data-ext="webp"] .file-icon{color:#c084fc;opacity:.9;}
+  .file-item[data-ext="sh"] .file-icon,.file-item[data-ext="bash"] .file-icon,.file-item[data-ext="zsh"] .file-icon{color:#34d399;opacity:.9;}
+  .file-item[data-ext="pdf"] .file-icon{color:#f87171;opacity:.9;}
+
+  /* Hover row actions */
+  .file-item-actions{display:flex;align-items:center;gap:3px;margin-left:auto;opacity:0;pointer-events:none;transition:opacity .15s ease;flex-shrink:0;}
+  .file-item:hover .file-item-actions{opacity:1;pointer-events:auto;}
+  .file-action-mini-btn{width:20px;height:20px;background:none;border:none;border-radius:4px;color:var(--muted);cursor:pointer;display:inline-flex;align-items:center;justify-content:center;transition:all .12s ease;padding:0;}
+  .file-action-mini-btn:hover{background:var(--hover-bg);color:var(--text);}
+  .file-action-mini-btn.del-btn:hover{background:rgba(239,68,68,0.15);color:#ef4444;}
   .preview-area{flex:1;overflow:auto;padding:14px;flex-direction:column;gap:8px;display:none;opacity:0;transition:opacity .15s;}
   .preview-area.visible{display:flex;opacity:1;}
   .preview-path{font-size:11px;color:var(--muted);padding-bottom:8px;border-bottom:1px solid var(--border);flex-shrink:0;}
@@ -3784,19 +3809,17 @@ body.tts-enabled .msg-tts-btn{display:inline-flex;align-items:center;}
 /* Session list: group header spacing */
 .session-list > div[style]{padding-left:12px;}
 
-/* Preview path bar: flex row with nice gap */
-.preview-path{display:flex;align-items:center;gap:6px;flex-wrap:nowrap;overflow:hidden;min-width:0;}
-.preview-path #previewPathText{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
-.preview-path #previewBadge{flex-shrink:0;white-space:nowrap;}
-.preview-path #btnCopyPreviewRelPath,.preview-path #btnDownloadFile,.preview-path #btnEditFile,.preview-path #btnRenderMarkdownAnyway{flex-shrink:0;white-space:nowrap;}
-/* #5548: keep the preview-header action buttons from crushing the path / clipping
-   Download+Edit on a narrow preview pane (worst with long RU/DE labels). The path
-   text keeps priority (ellipsis above); the newest button (Copy relative path) drops
-   its text label to icon-only when the RIGHT PANEL (not the viewport) is narrow —
-   .rightpanel is a named inline-size container, so this fires on pane resize too,
-   staying accessible via the button's title + aria-label. */
+/* Preview path bar: modern header with flex layout */
+.preview-path{display:flex;align-items:center;justify-content:space-between;gap:8px;padding:8px 10px;background:var(--surface-subtle);border:1px solid var(--border);border-radius:8px;margin-bottom:8px;flex-shrink:0;}
+.preview-path-meta{display:flex;align-items:center;gap:6px;min-width:0;flex:1;}
+.preview-path #previewPathText{font-family:var(--font-mono);font-size:11.5px;color:var(--text);font-weight:500;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+.preview-path #previewBadge{flex-shrink:0;white-space:nowrap;font-size:10px;font-weight:700;letter-spacing:.04em;padding:1px 6px;border-radius:999px;background:var(--hover-bg);border:1px solid var(--border);}
+.preview-actions{display:flex;align-items:center;gap:4px;flex-shrink:0;}
+.preview-tool-btn{font-size:11px;height:24px;width:auto;padding:2px 7px;display:inline-flex;align-items:center;gap:4px;border-radius:6px;background:var(--surface);border:1px solid var(--border);color:var(--muted);cursor:pointer;transition:all .15s ease;}
+.preview-tool-btn:hover{background:var(--hover-bg);color:var(--text);border-color:var(--border2);}
 @container rightpanel (max-width:520px){
-  .preview-path #btnCopyPreviewRelPath .preview-btn-label{display:none;}
+  .preview-tool-btn .preview-btn-label{display:none;}
+  .preview-tool-btn{width:24px;padding:0;justify-content:center;}
 }
 
 /* Preview badge typography */
@@ -6826,19 +6849,47 @@ main.main > .main-view:not([id="mainChat"]):not([id="mainSettings"]) .main-view-
 .detail-run-body.expanded{max-height:none;overflow-y:visible;}
 .detail-run-body .cron-run-pre{margin:0;font-size:12px;line-height:1.5;white-space:pre-wrap;word-break:break-word;}
 .detail-run-body .cron-run-pre code{background:transparent;padding:0;font-family:var(--font-mono);}
-.workspace-panel-tabs{display:flex;gap:4px;padding:6px 8px;border-bottom:1px solid var(--border);}
-.workspace-panel-tab{flex:1;border:1px solid transparent;background:transparent;color:var(--muted);border-radius:7px;padding:5px 8px;font-size:12px;cursor:pointer;}
-.workspace-panel-tab.active{background:var(--surface-subtle);color:var(--text);border-color:var(--border2);}
+.workspace-panel-tabs{display:flex;gap:3px;padding:3px;margin:8px 10px 6px;background:var(--hover-bg);border-radius:9px;border:1px solid var(--border-subtle,var(--border));}
+.workspace-panel-tab{flex:1;border:1px solid transparent;background:transparent;color:var(--muted);border-radius:7px;padding:5px 8px;font-size:11.5px;font-weight:500;cursor:pointer;display:inline-flex;align-items:center;justify-content:center;gap:5px;transition:all .15s ease;}
+.workspace-panel-tab:hover{color:var(--text);}
+.workspace-panel-tab.active{background:var(--surface);color:var(--text);font-weight:600;border-color:var(--border2);box-shadow:0 1px 3px rgba(0,0,0,0.12);}
 .workspace-artifacts{flex:1;overflow:auto;padding:8px;}
 .workspace-artifact-empty{padding:16px 8px;color:var(--muted);font-size:12px;line-height:1.5;text-align:center;}
-.workspace-artifact-item{display:block;width:100%;text-align:left;background:var(--surface-subtle);color:var(--text);border:1px solid var(--border);border-radius:8px;padding:8px 10px;margin-bottom:6px;cursor:pointer;}
-.workspace-artifact-item:hover{border-color:var(--accent);}
+.workspace-artifact-item{display:block;width:100%;text-align:left;background:var(--surface-subtle);color:var(--text);border:1px solid var(--border);border-radius:8px;padding:8px 10px;margin-bottom:6px;cursor:pointer;transition:border-color .15s ease,transform .12s ease;}
+.workspace-artifact-item:hover{border-color:var(--accent);transform:translateX(2px);}
   .workspace-artifact-filename{font-family:var(--font-mono);font-size:12px;overflow-wrap:anywhere;}
   .workspace-artifact-directory{display:flex;min-width:0;overflow:hidden;white-space:nowrap;font-family:var(--font-mono);font-size:11px;color:var(--muted);}
   .workspace-artifact-directory-head{min-width:0;flex:0 1 auto;overflow:hidden;text-overflow:ellipsis;}
   .workspace-artifact-directory-tail{flex:0 0 auto;min-width:0;max-width:100%;overflow:hidden;text-overflow:ellipsis;}
   .workspace-artifact-meta{display:inline-block;margin-top:4px;padding:1px 5px;border:1px solid var(--border);border-radius:999px;color:var(--muted);font-size:11px;line-height:1.3;}
-.workspace-artifacts-count{opacity:.65;font-size:11px;}
+.workspace-artifacts-count{display:inline-flex;align-items:center;justify-content:center;min-width:16px;height:16px;padding:0 4px;border-radius:999px;font-size:10px;font-weight:700;background:var(--surface-subtle);border:1px solid var(--border);color:var(--muted);line-height:1;}
+.workspace-panel-tab.active .workspace-artifacts-count{background:var(--accent-bg);color:var(--accent-text);border-color:var(--accent-bg-strong);}
+
+/* Workspace file search input */
+.workspace-search-wrap{display:flex;align-items:center;position:relative;margin:0 10px 6px;background:var(--surface-subtle);border:1px solid var(--border);border-radius:7px;padding:0 8px;height:28px;transition:border-color .15s ease,box-shadow .15s ease;}
+.workspace-search-wrap:focus-within{border-color:var(--accent);box-shadow:0 0 0 2px var(--focus-glow);}
+.workspace-search-icon{color:var(--muted);flex-shrink:0;margin-right:6px;opacity:.75;}
+#workspaceSearchInput{flex:1;background:transparent;border:none;outline:none;font-size:11.5px;color:var(--text);min-width:0;line-height:1.4;}
+#workspaceSearchInput::placeholder{color:var(--muted);opacity:.7;}
+.workspace-search-clear{background:none;border:none;color:var(--muted);cursor:pointer;padding:2px;display:inline-flex;align-items:center;justify-content:center;border-radius:4px;transition:color .12s;}
+.workspace-search-clear:hover{color:var(--text);}
+
+/* Hide search wrap when artifacts/todos/preview is open */
+.rightpanel[data-active-tab="artifacts"] .workspace-search-wrap,
+.rightpanel[data-active-tab="todos"] .workspace-search-wrap{display:none!important;}
+
+/* Slim scrollbars for rightpanel */
+.rightpanel .file-tree::-webkit-scrollbar,
+.rightpanel .preview-area::-webkit-scrollbar,
+.rightpanel .workspace-artifacts::-webkit-scrollbar,
+.rightpanel .workspace-todos::-webkit-scrollbar{width:5px;height:5px;}
+.rightpanel .file-tree::-webkit-scrollbar-thumb,
+.rightpanel .preview-area::-webkit-scrollbar-thumb,
+.rightpanel .workspace-artifacts::-webkit-scrollbar-thumb,
+.rightpanel .workspace-todos::-webkit-scrollbar-thumb{background:var(--border);border-radius:4px;}
+.rightpanel .file-tree::-webkit-scrollbar-thumb:hover,
+.rightpanel .preview-area::-webkit-scrollbar-thumb:hover{background:var(--muted);}
+
 .rightpanel[data-active-tab="artifacts"] .breadcrumb-bar,.rightpanel[data-active-tab="artifacts"] .file-tree,.rightpanel[data-active-tab="artifacts"] #wsEmptyState{display:none!important;}
 .rightpanel[data-active-tab="artifacts"] .workspace-artifacts{display:block;}
 .rightpanel[data-active-tab="files"] .workspace-artifacts{display:none!important;}

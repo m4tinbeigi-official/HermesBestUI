@@ -405,8 +405,39 @@ function switchWorkspacePanelTab(tab){
   if(artifacts) artifacts.hidden = _workspacePanelActiveTab !== 'artifacts';
   const todosPanel = $('workspaceTodosPanel');
   if(todosPanel) todosPanel.hidden = _workspacePanelActiveTab !== 'todos';
+  const searchWrap = $('workspaceSearchWrap');
+  if(searchWrap) searchWrap.style.display = _workspacePanelActiveTab === 'files' ? '' : 'none';
   if(_workspacePanelActiveTab === 'artifacts') renderSessionArtifacts();
   if(_workspacePanelActiveTab === 'todos') _loadWorkspacePanelTodos();
+}
+
+function filterWorkspaceFiles(query){
+  const q = (query || '').trim().toLowerCase();
+  const clearBtn = $('workspaceSearchClear');
+  if(clearBtn) clearBtn.hidden = !q;
+  const tree = $('fileTree');
+  if(!tree) return;
+  const items = tree.querySelectorAll('.file-item');
+  if(!items.length) return;
+  if(!q){
+    items.forEach(el => { el.style.display = ''; });
+    return;
+  }
+  items.forEach(el => {
+    const nameEl = el.querySelector('.file-name');
+    const name = nameEl ? nameEl.textContent.toLowerCase() : '';
+    const match = name.includes(q);
+    el.style.display = match ? '' : 'none';
+  });
+}
+
+function clearWorkspaceSearch(){
+  const inp = $('workspaceSearchInput');
+  if(inp){
+    inp.value = '';
+    filterWorkspaceFiles('');
+    inp.focus();
+  }
 }
 
 function _loadWorkspacePanelTodos(){
@@ -1387,6 +1418,7 @@ async function openFile(path, opts={}){
   $('previewPathText').textContent=path;
   $('previewArea').classList.add('visible');
   $('fileTree').style.display='none';
+  const sw=$('workspaceSearchWrap');if(sw)sw.style.display='none';
 
   _previewCurrentPath = path;
   // #6710: this open's ownership token (see _previewOpenOwned). Captured before

@@ -2774,6 +2774,7 @@ function clearPreview(opts={}){
   const pc=$('previewCode');if(pc)pc.textContent='';
   const pp=$('previewPathText');if(pp)pp.textContent='';
   const ft=$('fileTree');if(ft)ft.style.display='';
+  const sw=$('workspaceSearchWrap');if(sw&&(!window._workspacePanelActiveTab||window._workspacePanelActiveTab==='files'))sw.style.display='';
   _previewCurrentPath='';_previewCurrentMode='';_previewDirty=false;
   if(typeof _previewOpenGen==='number') _previewOpenGen++;
   // #6710: retire any in-flight preview open (guarded so harnesses that extract
