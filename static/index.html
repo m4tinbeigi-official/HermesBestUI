@@ -1944,11 +1944,16 @@
     <div id="wsEmptyState" style="display:none;flex:1;align-items:center;justify-content:center;padding:24px 16px;text-align:center;color:var(--muted);font-size:12px;line-height:1.6"></div>
     <div class="preview-area" id="previewArea">
       <div class="preview-path" id="previewPath">
+        <button id="btnBackToFileTree" class="panel-icon-btn preview-tool-btn back-btn" type="button" onclick="clearPreview({keepPanelOpen:true})" title="برگشت به لیست فایل‌ها (Esc)" aria-label="برگشت به فایل‌ها">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="19" y1="12" x2="5" y2="12"/><polyline points="12 19 5 12 12 5"/></svg>
+          <span class="preview-btn-label">فایل‌ها</span>
+        </button>
         <div class="preview-path-meta">
           <span id="previewPathText"></span>
           <span class="preview-badge" id="previewBadge"></span>
         </div>
         <div class="preview-actions" id="previewActions">
+          <button id="btnCopyPreviewContent" class="panel-icon-btn preview-tool-btn" type="button" onclick="copyPreviewFileContent()" title="کپی متن فایل" aria-label="کپی متن فایل"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"/><rect x="8" y="2" width="8" height="4" rx="1" ry="1"/></svg> <span class="preview-btn-label">Copy Code</span></button>
           <button id="btnCopyPreviewRelPath" class="panel-icon-btn preview-tool-btn" onclick="copyPreviewRelativePath()" title="Copy relative path" aria-label="Copy relative path" data-i18n-title="copy_relative_path" data-i18n-aria-label="copy_relative_path"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg> <span class="preview-btn-label" data-i18n="copy_relative_path">Copy path</span></button>
           <button id="btnOpenInBrowser" class="panel-icon-btn preview-tool-btn" style="display:none;" onclick="openInBrowser()" title="Open in new browser tab"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg> <span class="preview-btn-label" data-i18n="open_in_browser">Browser</span></button>
           <button id="btnRenderMarkdownAnyway" class="panel-icon-btn preview-tool-btn" style="display:none;" onclick="forceRenderMarkdownPreview()" title="Render this large file as rich Markdown"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M8 3H5a2 2 0 0 0-2 2v3"/><path d="M16 3h3a2 2 0 0 1 2 2v3"/><path d="M8 21H5a2 2 0 0 1-2-2v-3"/><path d="M16 21h3a2 2 0 0 0 2-2v-3"/><path d="M7 8h10"/><path d="M7 12h10"/><path d="M7 16h6"/></svg> <span class="preview-btn-label">Markdown</span></button>
@@ -1956,7 +1961,10 @@
           <button id="btnEditFile" class="panel-icon-btn preview-tool-btn" style="display:none;" onclick="toggleEditMode()"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M17 3a2.85 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z"/></svg> <span class="preview-btn-label">Edit</span></button>
         </div>
       </div>
-      <pre class="preview-code" id="previewCode"></pre>
+      <div class="preview-code-wrap" id="previewCodeWrap">
+        <div class="preview-code-gutter" id="previewCodeGutter" aria-hidden="true"></div>
+        <pre class="preview-code" id="previewCode"></pre>
+      </div>
       <div class="preview-img-wrap" id="previewImgWrap" style="display:none"><img class="preview-img" id="previewImg" src="" alt=""></div>
       <div class="preview-media-wrap" id="previewMediaWrap" style="display:none"></div>
       <div class="preview-pdf-wrap" id="previewPdfWrap" style="display:none">
@@ -1967,6 +1975,15 @@
         <iframe id="previewHtmlIframe" style="width:100%;height:100%;border:none;background:#fff" sandbox="allow-scripts allow-popups allow-popups-to-escape-sandbox" title="HTML preview"></iframe>
       </div>
       <textarea id="previewEditArea" style="display:none;flex:1;width:100%;background:var(--code-bg);color:var(--pre-text);border:1px solid var(--border2);border-radius:8px;padding:12px;font-family:var(--font-mono);font-size:12px;line-height:1.6;resize:none;outline:none" oninput="_previewDirty=true;updateEditBtn()"></textarea>
+    </div>
+    <div class="workspace-footer-bar" id="workspaceFooterBar">
+      <div class="ws-footer-left">
+        <span class="ws-stat" id="wsItemCount">-- فایل</span>
+      </div>
+      <div class="ws-footer-right">
+        <span class="ws-footer-hint"><kbd>/</kbd> جستجو</span>
+        <span class="ws-footer-hint"><kbd>Esc</kbd> برگشت</span>
+      </div>
     </div>
   </aside>
 </div>

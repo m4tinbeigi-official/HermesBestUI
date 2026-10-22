@@ -25265,6 +25265,9 @@ function renderFileTree(){
     return;
   }
   _renderTreeItems(box, visibleEntries, 0);
+  if(typeof _updateWorkspaceFooter==='function'){
+    _updateWorkspaceFooter(visibleEntries.length, visibleEntries.length, false);
+  }
   // #5657: restore the pre-wipe scroll position now that the tree is tall again.
   if(box) box.scrollTop=prevScrollTop;
 }

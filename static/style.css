@@ -3154,18 +3154,22 @@
   .file-action-mini-btn{width:20px;height:20px;background:none;border:none;border-radius:4px;color:var(--muted);cursor:pointer;display:inline-flex;align-items:center;justify-content:center;transition:all .12s ease;padding:0;}
   .file-action-mini-btn:hover{background:var(--hover-bg);color:var(--text);}
   .file-action-mini-btn.del-btn:hover{background:rgba(239,68,68,0.15);color:#ef4444;}
-  .preview-area{flex:1;overflow:auto;padding:14px;flex-direction:column;gap:8px;display:none;opacity:0;transition:opacity .15s;}
+  .file-item.keyboard-active{outline:2px solid var(--accent);outline-offset:-1px;background:var(--hover-bg);color:var(--text);}
+  .preview-area{flex:1;overflow:auto;padding:12px;flex-direction:column;gap:8px;display:none;opacity:0;transition:opacity .15s;}
   .preview-area.visible{display:flex;opacity:1;}
-  .preview-path{font-size:11px;color:var(--muted);padding-bottom:8px;border-bottom:1px solid var(--border);flex-shrink:0;}
-  .preview-code{font-family:var(--font-mono);font-size:12px;line-height:1.6;white-space:pre-wrap;word-break:break-word;color:var(--pre-text);}
-  /* Workspace preview syntax highlighting (#3337): Prism's prism-tomorrow theme
-     styles BOTH pre[class*="language-"] and code[class*="language-"] with its own
-     gray background + padding. Prism propagates the language-* class onto the
-     <pre> (.preview-code), so without overriding the <pre> too you get a gray
-     prism frame around the navy var(--code-bg) <code> — a jarring two-tone block
-     on dark themes. Mirror the chat-code-block fix (.msg-body pre[class*=...]):
-     force BOTH surfaces to var(--code-bg) so the code panel reads as one tone. */
-  .preview-code[class*="language-"],.preview-code code[class*="language-"]{background:var(--code-bg) !important;}
+  .preview-code-wrap{display:flex;flex:1;min-height:0;border:1px solid var(--border);border-radius:8px;background:var(--code-bg);overflow:auto;}
+  .preview-code-gutter{padding:10px 8px;text-align:right;color:var(--muted);opacity:0.45;user-select:none;border-right:1px solid var(--border);background:var(--surface-subtle);white-space:pre;font-family:var(--font-mono);font-size:11.5px;line-height:1.6;font-variant-numeric:tabular-nums;min-width:36px;flex-shrink:0;}
+  .preview-code-wrap .preview-code{flex:1;padding:10px 12px;margin:0;font-family:var(--font-mono);font-size:12px;line-height:1.6;white-space:pre;overflow-x:auto;min-width:0;background:transparent !important;color:var(--pre-text);}
+  /* Workspace preview syntax highlighting (#3337) */
+  .preview-code[class*="language-"],.preview-code code[class*="language-"]{background:transparent !important;}
+  /* Workspace bottom status bar */
+  .workspace-footer-bar{display:flex;align-items:center;justify-content:space-between;padding:5px 12px;font-size:10.5px;color:var(--muted);border-top:1px solid var(--border);background:var(--sidebar);flex-shrink:0;user-select:none;}
+  .workspace-footer-bar kbd{font-family:var(--font-mono);background:var(--hover-bg);border:1px solid var(--border);border-radius:4px;padding:1px 5px;font-size:9.5px;color:var(--text);margin-inline:2px;}
+  .ws-footer-right{display:flex;gap:10px;align-items:center;}
+  .ws-footer-hint{display:inline-flex;align-items:center;opacity:0.85;}
+  .ws-search-mark{background:rgba(245,158,11,0.35);color:inherit;border-radius:2px;padding:0 2px;}
+  .preview-tool-btn.back-btn{background:var(--hover-bg);color:var(--text);border-color:var(--border2);font-weight:500;}
+  .preview-tool-btn.back-btn:hover{background:var(--accent-bg);color:var(--accent-text);border-color:var(--accent);}
   /* Image preview */
   .preview-img-wrap{display:flex;align-items:center;justify-content:center;flex:1;padding:8px 0;min-height:0;}
   .preview-img{max-width:100%;max-height:100%;object-fit:contain;border-radius:6px;box-shadow:0 2px 12px rgba(0,0,0,.4);}

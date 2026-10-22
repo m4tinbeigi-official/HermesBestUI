@@ -411,24 +411,58 @@ function switchWorkspacePanelTab(tab){
   if(_workspacePanelActiveTab === 'todos') _loadWorkspacePanelTodos();
 }
 
+function _updateWorkspaceFooter(matched, total, isFiltered){
+  const countEl = $('wsItemCount');
+  if(!countEl) return;
+  if(typeof matched !== 'number') matched = 0;
+  if(typeof total !== 'number') total = matched;
+  if(isFiltered){
+    countEl.textContent = `${matched} مورد از ${total}`;
+  } else {
+    countEl.textContent = `${total} فایل و پوشه`;
+  }
+}
+
 function filterWorkspaceFiles(query){
   const q = (query || '').trim().toLowerCase();
   const clearBtn = $('workspaceSearchClear');
   if(clearBtn) clearBtn.hidden = !q;
   const tree = $('fileTree');
   if(!tree) return;
-  const items = tree.querySelectorAll('.file-item');
-  if(!items.length) return;
-  if(!q){
-    items.forEach(el => { el.style.display = ''; });
+  const items = tree.querySelectorAll('.file-item:not(.file-empty)');
+  if(!items.length){
+    _updateWorkspaceFooter(0, 0, false);
     return;
   }
+  let matchCount = 0;
   items.forEach(el => {
     const nameEl = el.querySelector('.file-name');
-    const name = nameEl ? nameEl.textContent.toLowerCase() : '';
-    const match = name.includes(q);
-    el.style.display = match ? '' : 'none';
+    if(!nameEl) return;
+    if(!nameEl.dataset.originalName){
+      nameEl.dataset.originalName = nameEl.textContent;
+    }
+    const orig = nameEl.dataset.originalName;
+    if(!q){
+      nameEl.textContent = orig;
+      el.style.display = '';
+      matchCount++;
+      return;
+    }
+    const idx = orig.toLowerCase().indexOf(q);
+    if(idx !== -1){
+      el.style.display = '';
+      matchCount++;
+      const before = orig.slice(0, idx);
+      const match = orig.slice(idx, idx + q.length);
+      const after = orig.slice(idx + q.length);
+      const escFn = typeof esc === 'function' ? esc : s => s;
+      nameEl.innerHTML = escFn(before) + '<mark class="ws-search-mark">' + escFn(match) + '</mark>' + escFn(after);
+    } else {
+      el.style.display = 'none';
+      nameEl.textContent = orig;
+    }
   });
+  _updateWorkspaceFooter(matchCount, items.length, Boolean(q));
 }
 
 function clearWorkspaceSearch(){
@@ -1202,6 +1236,14 @@ function renderCodePreviewContent(path, content){
   if(lang&&typeof Prism!=='undefined'&&typeof Prism.highlightElement==='function'){
     Prism.highlightElement(codeEl);
   }
+  const gutter=$('previewCodeGutter');
+  if(gutter){
+    const lines=String(content||'').split('\n');
+    const count=Math.max(1, lines.length);
+    let nums='';
+    for(let i=1;i<=count;i++) nums += i + '\n';
+    gutter.textContent=nums;
+  }
 }
 
 function renderCsvPreviewContent(path, content){
@@ -1260,6 +1302,8 @@ function _previewOpenOwned(gen, sid, wsGen){
 
 function showPreview(mode){
   // mode: 'code' | 'csv' | 'image' | 'md' | 'html' | 'pdf' | 'audio' | 'video'
+  const codeWrap=$('previewCodeWrap');
+  if(codeWrap) codeWrap.style.display = mode==='code' ? 'flex' : 'none';
   $('previewCode').style.display     = mode==='code'  ? '' : 'none';
   $('previewImgWrap').style.display  = mode==='image' ? '' : 'none';
   const mediaWrap=$('previewMediaWrap'); if(mediaWrap) mediaWrap.style.display = (mode==='audio'||mode==='video') ? '' : 'none';
@@ -1273,10 +1317,42 @@ function showPreview(mode){
   _previewCurrentMode = mode;
   _previewDirty = false;
   updateEditBtn();
+  const copyContentBtn=$('btnCopyPreviewContent');
+  if(copyContentBtn) copyContentBtn.style.display = (mode==='code'||mode==='md'||mode==='csv') ? 'inline-flex' : 'none';
   // Show "Open in browser" button for iframe-backed document previews
   const openBtn=$('btnOpenInBrowser');
   if(openBtn) openBtn.style.display = (mode==='html'||mode==='pdf')?'inline-flex':'none';
   setLargeMarkdownForceRenderVisible(false);
+}
+
+async function copyPreviewFileContent(){
+  let content = '';
+  const editArea = $('previewEditArea');
+  const code = $('previewCode');
+  const md = $('previewMd');
+  if(editArea && editArea.style.display !== 'none'){
+    content = editArea.value;
+  } else if(code && code.style.display !== 'none'){
+    content = code.textContent;
+  } else if(md && md.style.display !== 'none'){
+    content = _previewRawContent || md.innerText || md.textContent;
+  }
+  if(!content && _previewCurrentPath){
+    try{
+      const data = await api(_workspaceRouteForPath(_previewCurrentPath, 'read'));
+      content = data && data.content ? data.content : '';
+    }catch(e){}
+  }
+  if(navigator.clipboard && navigator.clipboard.writeText){
+    await navigator.clipboard.writeText(content);
+    const btn = $('btnCopyPreviewContent');
+    if(btn){
+      const orig = btn.innerHTML;
+      btn.innerHTML = '<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#10b981" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="20 6 9 17 4 12"/></svg> <span class="preview-btn-label" style="color:#10b981">کپی شد!</span>';
+      setTimeout(()=>{ btn.innerHTML = orig; }, 1500);
+    }
+    if(typeof showToast === 'function') showToast('محتوای فایل کپی شد', 1500);
+  }
 }
 
 function updateEditBtn(){
@@ -1896,4 +1972,74 @@ if (typeof document !== 'undefined') {
   } else {
     _wsUploadInit();
   }
+}
+
+// ── Workspace keyboard shortcuts & accessibility ─────────────────────────────
+if (typeof document !== 'undefined') {
+  document.addEventListener('keydown', (e) => {
+    const active = document.activeElement;
+    const isEditing = active && (active.tagName === 'INPUT' || active.tagName === 'TEXTAREA' || active.isContentEditable);
+    const rightPanel = document.querySelector('.rightpanel');
+    const isWsOpen = document.documentElement.dataset.workspacePanel === 'open';
+
+    // Press '/' to focus search input
+    if (e.key === '/' && !isEditing && isWsOpen) {
+      const searchInp = $('workspaceSearchInput');
+      if (searchInp && searchInp.offsetParent !== null) {
+        e.preventDefault();
+        searchInp.focus();
+        searchInp.select();
+      }
+      return;
+    }
+
+    // Press 'Escape' to clear search or exit preview
+    if (e.key === 'Escape') {
+      const searchInp = $('workspaceSearchInput');
+      if (active === searchInp && searchInp.value) {
+        e.preventDefault();
+        clearWorkspaceSearch();
+        return;
+      }
+      const previewArea = $('previewArea');
+      if (previewArea && previewArea.classList.contains('visible')) {
+        e.preventDefault();
+        if (typeof clearPreview === 'function') clearPreview({ keepPanelOpen: true });
+        return;
+      }
+    }
+
+    // Arrow navigation when focus is in file search or file tree
+    if (isWsOpen && (active === $('workspaceSearchInput') || (rightPanel && rightPanel.contains(active)))) {
+      if (e.key === 'ArrowDown' || e.key === 'ArrowUp') {
+        const tree = $('fileTree');
+        if (!tree || tree.style.display === 'none') return;
+        const visibleItems = Array.from(tree.querySelectorAll('.file-item:not(.file-empty)')).filter(el => el.style.display !== 'none');
+        if (!visibleItems.length) return;
+        e.preventDefault();
+        let curIdx = visibleItems.findIndex(el => el.classList.contains('keyboard-active'));
+        if (curIdx === -1) {
+          curIdx = e.key === 'ArrowDown' ? 0 : visibleItems.length - 1;
+        } else if (e.key === 'ArrowDown') {
+          curIdx = (curIdx + 1) % visibleItems.length;
+        } else {
+          curIdx = (curIdx - 1 + visibleItems.length) % visibleItems.length;
+        }
+        visibleItems.forEach(el => el.classList.remove('keyboard-active'));
+        const nextItem = visibleItems[curIdx];
+        if (nextItem) {
+          nextItem.classList.add('keyboard-active');
+          nextItem.scrollIntoView({ block: 'nearest' });
+        }
+      } else if (e.key === 'Enter' && active === $('workspaceSearchInput')) {
+        const tree = $('fileTree');
+        if (!tree || tree.style.display === 'none') return;
+        const target = tree.querySelector('.file-item.keyboard-active') || tree.querySelector('.file-item:not(.file-empty):not([style*="display: none"])');
+        if (target) {
+          e.preventDefault();
+          target.click();
+        }
+      }
+    }
+  });
 }
