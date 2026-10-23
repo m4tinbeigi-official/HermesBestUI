@@ -13314,7 +13314,7 @@ _SETTINGS_DEFAULTS = {
     # their first hydration.  When a user picks a locale in the Settings
     # modal the value is written here and the field is set explicitly.
     "bot_name": os.getenv(
-        "HERMES_WEBUI_BOT_NAME", "Hermes"
+        "HERMES_WEBUI_BOT_NAME", "Mr Hermes"
     ),  # display name for the assistant
     "sound_enabled": False,  # play notification sound when assistant finishes
     "rtl": False,  # right-to-left chat layout (chat messages + composer only)

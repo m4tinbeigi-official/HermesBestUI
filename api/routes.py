@@ -12797,6 +12797,15 @@ _LOGIN_LOCALE = {
         "invalid_pw": "Neplatn\u00e9 heslo",
         "conn_failed": "P\u0159ipojen\u00ed selhalo",
     },
+    "fa": {
+        "lang": "fa-IR",
+        "title": "ورود",
+        "subtitle": "رمز عبور پنل مستر هرمس را وارد کنید",
+        "placeholder": "رمز عبور",
+        "btn": "ورود به سیستم",
+        "invalid_pw": "رمز عبور نادرست است",
+        "conn_failed": "خطا در برقراری ارتباط با سرور",
+    },
 }
 
 
