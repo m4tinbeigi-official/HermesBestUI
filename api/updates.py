@@ -2301,6 +2301,10 @@ def apply_force_update(target: str, channel=None) -> dict:
         # existing tag". See #2756.
         fetch_out, fetch_ok = _run_git(['fetch', 'origin', '--quiet', '--tags', '--force'], path, timeout=15)
         if not fetch_ok:
+            _, branch_fetch_ok = _run_git(['fetch', 'origin', '--quiet'], path, timeout=10)
+            if branch_fetch_ok:
+                fetch_ok = True
+        if not fetch_ok:
             return {
                 'ok': False,
                 'message': _apply_fetch_failure_message(
