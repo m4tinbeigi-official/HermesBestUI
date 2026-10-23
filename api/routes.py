@@ -12882,7 +12882,7 @@ def _login_locale_from_accept_language(header: str | None) -> str | None:
 # ── Login page (self-contained, no external deps) ────────────────────────────
 _LOGIN_PAGE_HTML = """<!doctype html>
 <html lang="{{LANG}}"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
-<title>{{BOT_NAME}} — {{LOGIN_TITLE}}</title>
+<title>{{BOT_NAME}} - {{LOGIN_TITLE}}</title>
 <style>
 *{box-sizing:border-box;margin:0;padding:0}
 body{background:#1a1a2e;color:#e8e8f0;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",system-ui,sans-serif;
@@ -14972,16 +14972,16 @@ def _handle_plugins(handler, parsed) -> bool:
 
 
 _SHELL_ERROR_HTML = """<!doctype html>
-<html lang=\"en\">
+<html lang="en">
 <head>
-  <meta charset=\"utf-8\">
-  <meta name=\"viewport\" content=\"width=device-width, initial-scale=1\">
-  <title>Hermes is restarting</title>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Mr Hermes is restarting</title>
 </head>
-<body style=\"margin:0;padding:2rem;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;background:#111827;color:#e5e7eb;\">
-  <main style=\"max-width:40rem;margin:10vh auto;line-height:1.5;\">
-    <h1 style=\"font-size:1.5rem;margin:0 0 0.75rem;\">Hermes is restarting…</h1>
-    <p style=\"margin:0;color:#cbd5e1;\">The WebUI shell could not load cleanly. Refresh in a moment if this page does not update automatically.</p>
+<body style="margin:0;padding:2rem;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;background:#111827;color:#e5e7eb;">
+  <main style="max-width:40rem;margin:10vh auto;line-height:1.5;">
+    <h1 style="font-size:1.5rem;margin:0 0 0.75rem;">Mr Hermes is restarting…</h1>
+    <p style="margin:0;color:#cbd5e1;">The Mr Hermes shell could not load cleanly. Refresh in a moment if this page does not update automatically.</p>
   </main>
 </body>
 </html>"""
@@ -15918,7 +15918,7 @@ def handle_get(handler, parsed) -> bool:
 
     if parsed.path == "/login":
         _settings = load_settings()
-        _bn = _html.escape(_settings.get("bot_name") or "Hermes")
+        _bn = _html.escape(_settings.get("bot_name") or os.getenv("HERMES_WEBUI_BOT_NAME") or "Mr Hermes")
         # `settings.language` is None until the user explicitly picks a locale
         # (#7622). This page is server-rendered, so client-side browser
         # detection has not run yet — honour Accept-Language here too, or the
@@ -19659,7 +19659,7 @@ def handle_post(handler, parsed) -> bool:
         )
 
         if "bot_name" in body:
-            body["bot_name"] = (str(body["bot_name"]) or "").strip() or "Hermes"
+            body["bot_name"] = (str(body["bot_name"]) or "").strip() or "Mr Hermes"
 
         auth_enabled_before = is_auth_enabled()
         password_auth_enabled_before = auth_enabled_before and get_password_hash() is not None
