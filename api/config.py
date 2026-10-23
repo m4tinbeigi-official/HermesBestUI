@@ -13483,6 +13483,8 @@ def load_settings() -> dict:
                 and k != _SETTINGS_PERSISTED_SPEECH_KEYS_FIELD
             }
         )
+        if settings.get("bot_name") in (None, "", "Hermes"):
+            settings["bot_name"] = os.getenv("HERMES_WEBUI_BOT_NAME", "Mr Hermes")
         if (
             "default_message_mode" not in stored
             and "busy_input_mode" in stored
