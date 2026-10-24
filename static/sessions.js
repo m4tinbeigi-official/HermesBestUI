@@ -3654,6 +3654,15 @@ function _setActiveProjectFilter(projectId) {
   if (_activeProject === next) return;
   _activeProject = next;
   window._activeProject = _activeProject;
+  if(window.__hermesDateGroupCollapsed){
+    if(next && next !== NO_PROJECT_FILTER && Array.isArray(_allProjects)){
+      const p = _allProjects.find(x => x.project_id === next);
+      if(p && window.__hermesDateGroupCollapsed[p.name]) delete window.__hermesDateGroupCollapsed[p.name];
+    } else if(next === NO_PROJECT_FILTER){
+      const unassignedLabel = (typeof t === 'function' ? t('project_chip_unassigned') : null) || 'بدون پوشه';
+      if(window.__hermesDateGroupCollapsed[unassignedLabel]) delete window.__hermesDateGroupCollapsed[unassignedLabel];
+    }
+  }
   renderSessionListFromCache();
   void renderSessionList({deferWhileInteracting:false});
   if (typeof updateChatProjectHub === 'function') updateChatProjectHub();
@@ -9560,7 +9569,7 @@ function _partitionSidebarSessionRows(allMatched, activeSidForSidebar){
     const referenceRaw=isCli ? cliReferenceRaw : webuiReferenceRaw;
     const sessionsRaw=isCli ? cliSessionsRaw : webuiSessionsRaw;
     profileFiltered.push(s);
-    const projectId=projectIdFor(s);
+    const projectId=projectIdFor(s) || s.project_id || null;
     if(_activeProject===NO_PROJECT_FILTER){
       if(projectId) continue;
     } else if(_activeProject){
@@ -10059,6 +10068,7 @@ function renderSessionListFromCache(){
   if(pinned.length) groups.push({label:'\u2605 ' + (typeof t === 'function' ? (t('session_time_bucket_pinned') || 'Pinned') : 'Pinned'),items:pinned,isPinned:true});
   
   const hasProjects = Array.isArray(_allProjects) && _allProjects.length > 0;
+  const unassignedLabel = (typeof t === 'function' ? t('project_chip_unassigned') : null) || 'بدون پوشه';
   if(hasProjects){
     const projectsMap = new Map();
     _allProjects.forEach(p => {
@@ -10066,31 +10076,56 @@ function renderSessionListFromCache(){
     });
     const unassigned = [];
     for(const s of unpinned){
-      if(s.project_id && projectsMap.has(s.project_id)){
-        projectsMap.get(s.project_id).items.push(s);
+      const pid = (typeof projectIdFor === 'function' ? projectIdFor(s) : null) || s.project_id;
+      if(pid && projectsMap.has(pid)){
+        projectsMap.get(pid).items.push(s);
       } else {
         unassigned.push(s);
       }
     }
-    for(const [pid, data] of projectsMap.entries()){
-      groups.push({
-        label: data.project.name,
-        items: data.items,
-        project: data.project,
-        isFolder: true
-      });
-    }
-    if(unassigned.length > 0){
-      groups.push({
-        label: 'گفتگوهای عمومی',
-        items: unassigned,
-        isFolder: true,
-        isUnassigned: true
-      });
+    if(_activeProject === NO_PROJECT_FILTER){
+      // Unassigned view ("بدون پوشه"): do not show any defined folders or their chats
+      if(unassigned.length > 0){
+        groups.push({
+          label: unassignedLabel,
+          items: unassigned,
+          isFolder: true,
+          isUnassigned: true
+        });
+      }
+    } else if(_activeProject){
+      // Specific project tag selected: only show this project folder, hide all other folders
+      if(projectsMap.has(_activeProject)){
+        const data = projectsMap.get(_activeProject);
+        groups.push({
+          label: data.project.name,
+          items: data.items,
+          project: data.project,
+          isFolder: true
+        });
+      }
+    } else {
+      // All view: show all folders and unassigned
+      for(const [pid, data] of projectsMap.entries()){
+        groups.push({
+          label: data.project.name,
+          items: data.items,
+          project: data.project,
+          isFolder: true
+        });
+      }
+      if(unassigned.length > 0){
+        groups.push({
+          label: unassignedLabel,
+          items: unassigned,
+          isFolder: true,
+          isUnassigned: true
+        });
+      }
     }
   } else {
     groups.push({
-      label: 'گفتگوهای عمومی',
+      label: unassignedLabel,
       items: unpinned,
       isFolder: true,
       isUnassigned: true
@@ -10233,6 +10268,20 @@ function renderSessionListFromCache(){
           _showProjectContextMenu(e, g.project, moreBtn);
         };
         actions.appendChild(moreBtn);
+      } else if(g.isUnassigned){
+        const addBtn=document.createElement('button');
+        addBtn.type='button';
+        addBtn.className='folder-btn folder-add-btn';
+        addBtn.title='گفتگوی جدید (بدون پوشه)';
+        addBtn.setAttribute('aria-label', 'New unassigned chat');
+        addBtn.innerHTML='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" width="12" height="12"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>';
+        addBtn.onclick=(e)=>{
+          e.stopPropagation();
+          if(typeof newSession==='function'){
+            newSession(null, {project_id: null});
+          }
+        };
+        actions.appendChild(addBtn);
       }
       hdr.appendChild(actions);
     }
